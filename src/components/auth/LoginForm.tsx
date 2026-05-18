@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { useAuthStore } from '../../store/authStore';
@@ -53,9 +54,12 @@ export const LoginForm: React.FC = () => {
     setLoading(true);
     try {
       await login(formData.email, formData.password);
+      toast.success('Login successful! Welcome back.');
       navigate('/dashboard');
-    } catch (error) {
-      setErrors({ email: 'Invalid credentials. Please try again.' });
+    } catch (error: any) {
+      console.error('Login error:', error);
+      toast.error(error.message || 'Invalid email or password');
+      setErrors({ email: ' ', password: 'Invalid credentials' });
     } finally {
       setLoading(false);
     }
@@ -87,7 +91,10 @@ export const LoginForm: React.FC = () => {
 
       <div className="flex items-center justify-between mb-6">
         <label className="flex items-center">
-          <input type="checkbox" className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+          <input 
+            type="checkbox" 
+            className="rounded border-gray-300 text-primary-600 focus:ring-primary-500" 
+          />
           <span className="ml-2 text-sm text-gray-600">Remember me</span>
         </label>
         <a href="#" className="text-sm text-primary-600 hover:text-primary-700">
@@ -122,6 +129,7 @@ export const LoginForm: React.FC = () => {
         <button
           type="button"
           className="mt-4 w-full flex items-center justify-center px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+          onClick={() => toast('Google OAuth will be implemented in Iteration 4')}
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
             <path

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { useAuthStore } from '../../store/authStore';
@@ -34,6 +35,8 @@ export const RegisterForm: React.FC = () => {
       newErrors.username = 'Username is required';
     } else if (formData.username.length < 3) {
       newErrors.username = 'Username must be at least 3 characters';
+    } else if (!/^[a-zA-Z0-9_-]+$/.test(formData.username)) {
+      newErrors.username = 'Username can only contain letters, numbers, _ and -';
     }
 
     if (!formData.email) {
@@ -66,9 +69,21 @@ export const RegisterForm: React.FC = () => {
     setLoading(true);
     try {
       await register(formData.username, formData.email, formData.password);
+      toast.success('Account created successfully! Please login.');
       navigate('/login');
-    } catch (error) {
-      setErrors({ email: 'Registration failed. Email may already exist.' });
+    } catch (error: any) {
+      console.error('Registration error:', error);
+      const errorMessage = error.message || 'Registration failed';
+      toast.error(errorMessage);
+      
+      // Set specific field error if backend returns field-specific error
+      if (errorMessage.toLowerCase().includes('email')) {
+        setErrors({ email: errorMessage });
+      } else if (errorMessage.toLowerCase().includes('username')) {
+        setErrors({ username: errorMessage });
+      } else {
+        setErrors({ email: errorMessage });
+      }
     } finally {
       setLoading(false);
     }
@@ -122,7 +137,11 @@ export const RegisterForm: React.FC = () => {
 
       <div className="mb-6">
         <label className="flex items-start">
-          <input type="checkbox" required className="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500" />
+          <input 
+            type="checkbox" 
+            required 
+            className="mt-1 rounded border-gray-300 text-primary-600 focus:ring-primary-500" 
+          />
           <span className="ml-2 text-sm text-gray-600">
             I agree to the{' '}
             <a href="#" className="text-primary-600 hover:text-primary-700">

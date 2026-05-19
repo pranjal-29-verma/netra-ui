@@ -28,6 +28,19 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
+      loginWithGoogle: async (credential: string) => {
+        try {
+          const response = await authService.googleLogin(credential);
+          set({
+            user: response.user,
+            token: response.access_token,
+            isAuthenticated: true,
+          });
+        } catch (error: any) {
+          throw new Error(error.response?.data?.detail || 'Google login failed');
+        }
+      },
+
       register: async (username: string, email: string, password: string) => {
         try {
           await authService.register({ username, email, password });

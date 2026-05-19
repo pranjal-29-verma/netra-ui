@@ -45,6 +45,20 @@ class AuthService {
   }
 
   /**
+   * Login with Google ID token
+   */
+  async googleLogin(credential: string): Promise<AuthResponse> {
+    const response = await api.post<AuthResponse>(API_ENDPOINTS.GOOGLE_AUTH, { credential });
+
+    if (response.data.access_token) {
+      localStorage.setItem('access_token', response.data.access_token);
+      localStorage.setItem('refresh_token', response.data.refresh_token);
+    }
+
+    return response.data;
+  }
+
+  /**
    * Logout user
    */
   logout(): void {

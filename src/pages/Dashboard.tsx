@@ -1,30 +1,52 @@
-import React from 'react';
-import { useAuthStore } from '../store/authStore';
-import { useNavigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { ChatLayout } from '../components/chat/ChatLayout';
+import { ConversationList } from '../components/chat/ConversationList';
+import { ChatArea } from '../components/chat/ChatArea';
+import { useChatStore } from '../store/chatStore';
+import type { Conversation } from '../types';
 
 export const Dashboard: React.FC = () => {
-  const { user, logout } = useAuthStore();
-  const navigate = useNavigate();
+  const { setConversations, setCurrentConversation } = useChatStore();
 
-  const handleLogout = () => {
-    logout();
-    navigate('/login');
-  };
+  useEffect(() => {
+    // Load conversations from backend (will implement in next iteration)
+    // For now, use mock data
+    const mockConversations: Conversation[] = [
+      {
+        id: 1,
+        userId: 1,
+        title: 'Getting Started with React',
+        isIncognito: false,
+        createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 2,
+        userId: 1,
+        title: 'Python Data Analysis Tips',
+        isIncognito: false,
+        createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+      },
+      {
+        id: 3,
+        userId: 1,
+        title: 'Database Design Best Practices',
+        isIncognito: false,
+        createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+        updatedAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
+      },
+    ];
+
+    setConversations(mockConversations);
+
+    // Optionally select first conversation
+    // setCurrentConversation(mockConversations[0]);
+  }, [setConversations, setCurrentConversation]);
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto py-6 px-4">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h1 className="text-2xl font-bold mb-4">Dashboard (Placeholder)</h1>
-          <p className="text-gray-600 mb-4">Welcome, {user?.username || 'User'}!</p>
-          <button onClick={handleLogout} className="btn-primary">
-            Logout
-          </button>
-          <p className="mt-4 text-sm text-gray-500">
-            Chat interface will be implemented in Iteration 6
-          </p>
-        </div>
-      </div>
-    </div>
+    <ChatLayout sidebar={<ConversationList />}>
+      <ChatArea />
+    </ChatLayout>
   );
 };

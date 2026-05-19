@@ -70,12 +70,14 @@ export interface ChatState {
   messages: Message[];
   isLoading: boolean;
   isStreaming: boolean;
+  isIncognito: boolean;
   setConversations: (conversations: Conversation[]) => void;
   setCurrentConversation: (conversation: Conversation | null) => void;
   addMessage: (message: Message) => void;
   setMessages: (messages: Message[]) => void;
   setIsLoading: (loading: boolean) => void;
   setIsStreaming: (streaming: boolean) => void;
+  toggleIncognito: () => void;
   fetchConversations: () => Promise<void>;
   createConversation: () => Promise<Conversation>;
   deleteConversation: (id: number) => Promise<void>;

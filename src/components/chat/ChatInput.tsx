@@ -24,6 +24,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       setMessage('');
       if (textareaRef.current) {
         textareaRef.current.style.height = 'auto';
+        textareaRef.current.focus();
       }
     }
   };
@@ -66,6 +67,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               placeholder="Type your message... (Shift+Enter for new line)"
               disabled={disabled}
               rows={1}
+              autoFocus
               className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none transition-all disabled:bg-gray-50 disabled:text-gray-500"
               style={{ minHeight: '48px', maxHeight: '200px' }}
             />

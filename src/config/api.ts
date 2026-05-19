@@ -6,9 +6,9 @@ export const API_ENDPOINTS = {
   LOGIN: '/api/auth/login',
   GOOGLE_AUTH: '/api/auth/google',
   ME: '/api/auth/me',
-  
-  // Will add more endpoints in future iterations
-  // CONVERSATIONS: '/api/conversations',
-  // MESSAGES: '/api/messages',
-  // DOCUMENTS: '/api/documents',
+
+  // Conversation endpoints
+  CONVERSATIONS: '/api/conversations',
+  CONVERSATION: (id: number) => `/api/conversations/${id}`,
+  MESSAGES: (id: number) => `/api/conversations/${id}/messages`,
 };

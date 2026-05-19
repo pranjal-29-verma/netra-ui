@@ -3,6 +3,7 @@ import { Plus, MessageSquare, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Conversation } from '../../types';
 import { useChatStore } from '../../store/chatStore';
+import { TokenUsageBar } from './TokenUsageBar';
 
 export const ConversationList: React.FC = () => {
   const {
@@ -122,6 +123,9 @@ export const ConversationList: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Token Usage Bar */}
+      <TokenUsageBar />
 
       {/* Incognito Toggle - Will implement in Iteration 11 */}
       <div className="p-4 border-t border-gray-200">

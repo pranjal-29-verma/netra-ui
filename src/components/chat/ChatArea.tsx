@@ -1,56 +1,36 @@
 import React, { useEffect, useRef } from 'react';
 import { MessageSquare } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { Message } from './Message';
 import { ChatInput } from './ChatInput';
 import { useChatStore } from '../../store/chatStore';
-import type { Message as MessageType } from '../../types';
 
 export const ChatArea: React.FC = () => {
-  const { currentConversation, messages, isStreaming, addMessage } = useChatStore();
+  const { currentConversation, messages, isLoading, isStreaming, sendMessage, createConversation, fetchMessages } = useChatStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
   useEffect(() => {
-    scrollToBottom();
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
-  const handleSendMessage = (content: string) => {
-    if (!currentConversation) {
-      // Will implement creating new conversation in backend iteration
-      console.log('Need to create new conversation first');
-      return;
+  const handleSendMessage = async (content: string) => {
+    try {
+      let conversationId = currentConversation?.id;
+
+      if (!conversationId) {
+        const newConversation = await createConversation();
+        conversationId = newConversation.id;
+        await fetchMessages(conversationId);
+      }
+
+      await sendMessage(conversationId, content);
+    } catch {
+      toast.error('Failed to send message');
     }
-
-    // Add user message
-    const userMessage: MessageType = {
-      id: Date.now(),
-      conversationId: currentConversation.id,
-      role: 'user',
-      content,
-      createdAt: new Date().toISOString(),
-    };
-    addMessage(userMessage);
-
-    // Simulate AI response (will be replaced with real API call)
-    setTimeout(() => {
-      const aiMessage: MessageType = {
-        id: Date.now() + 1,
-        conversationId: currentConversation.id,
-        role: 'assistant',
-        content: 'This is a placeholder response. Real AI integration will be added in Iteration 15.',
-        tokensUsed: 150,
-        createdAt: new Date().toISOString(),
-      };
-      addMessage(aiMessage);
-    }, 1000);
   };
 
   const handleStopStreaming = () => {
     // Will implement in Iteration 15
-    console.log('Stop streaming');
   };
 
   if (!currentConversation) {
@@ -110,6 +90,7 @@ export const ChatArea: React.FC = () => {
       {/* Chat Input */}
       <ChatInput
         onSendMessage={handleSendMessage}
+        disabled={isLoading}
         isStreaming={isStreaming}
         onStopStreaming={handleStopStreaming}
       />

@@ -1,24 +1,44 @@
 import React from 'react';
 import { Plus, MessageSquare, Trash2 } from 'lucide-react';
+import toast from 'react-hot-toast';
 import type { Conversation } from '../../types';
 import { useChatStore } from '../../store/chatStore';
 
 export const ConversationList: React.FC = () => {
-  const { conversations, currentConversation, setCurrentConversation } = useChatStore();
+  const {
+    conversations,
+    currentConversation,
+    setCurrentConversation,
+    createConversation,
+    deleteConversation,
+    fetchMessages,
+    isLoading,
+  } = useChatStore();
 
-  const handleNewChat = () => {
-    // Will implement in backend iteration
-    console.log('Create new chat');
+  const handleNewChat = async () => {
+    try {
+      await createConversation();
+    } catch {
+      toast.error('Failed to create conversation');
+    }
   };
 
-  const handleSelectConversation = (conversation: Conversation) => {
+  const handleSelectConversation = async (conversation: Conversation) => {
     setCurrentConversation(conversation);
+    try {
+      await fetchMessages(conversation.id);
+    } catch {
+      toast.error('Failed to load messages');
+    }
   };
 
-  const handleDeleteConversation = (conversationId: number, e: React.MouseEvent) => {
+  const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
     e.stopPropagation();
-    // Will implement in backend iteration
-    console.log('Delete conversation:', conversationId);
+    try {
+      await deleteConversation(conversationId);
+    } catch {
+      toast.error('Failed to delete conversation');
+    }
   };
 
   const formatDate = (dateString: string) => {
@@ -88,7 +108,7 @@ export const ConversationList: React.FC = () => {
                     {conversation.title}
                   </p>
                   <p className="text-xs text-gray-500 mt-0.5">
-                    {formatDate(conversation.updatedAt)}
+                    {formatDate(conversation.updated_at)}
                   </p>
                 </div>
                 <button

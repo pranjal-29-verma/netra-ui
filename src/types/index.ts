@@ -30,24 +30,24 @@ export interface RegisterCredentials {
 }
 
 // Chat types
-export interface Message {
-  id: number;
-  conversationId: number;
-  role: 'user' | 'assistant';
-  content: string;
-  tokensUsed?: number;
-  sources?: any[];
-  createdAt: string;
-}
-
 export interface Conversation {
   id: number;
-  userId: number;
+  user_id: number;
   title: string;
-  isIncognito: boolean;
-  createdAt: string;
-  updatedAt: string;
+  is_incognito: boolean;
+  created_at: string;
+  updated_at: string;
   messages?: Message[];
+}
+
+export interface Message {
+  id: number;
+  conversation_id: number;
+  role: 'user' | 'assistant';
+  content: string;
+  tokens_used?: number;
+  sources?: any[];
+  created_at: string;
 }
 
 export interface ChatState {
@@ -62,4 +62,9 @@ export interface ChatState {
   setMessages: (messages: Message[]) => void;
   setIsLoading: (loading: boolean) => void;
   setIsStreaming: (streaming: boolean) => void;
+  fetchConversations: () => Promise<void>;
+  createConversation: () => Promise<Conversation>;
+  deleteConversation: (id: number) => Promise<void>;
+  fetchMessages: (conversationId: number) => Promise<void>;
+  sendMessage: (conversationId: number, content: string) => Promise<void>;
 }

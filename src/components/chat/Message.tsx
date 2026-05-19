@@ -83,15 +83,15 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
             }`}
           >
             <span>
-              {new Date(message.createdAt).toLocaleTimeString('en-US', {
+              {new Date(message.created_at).toLocaleTimeString('en-US', {
                 hour: '2-digit',
                 minute: '2-digit',
               })}
             </span>
-            {message.tokensUsed && (
+            {message.tokens_used && (
               <>
                 <span className="mx-1">•</span>
-                <span>{message.tokensUsed} tokens</span>
+                <span>{message.tokens_used} tokens</span>
               </>
             )}
           </div>

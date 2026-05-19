@@ -61,10 +61,9 @@ export const ChatArea: React.FC = () => {
           </div>
         </div>
 
-        {/* Input (disabled when no conversation) */}
         <ChatInput
           onSendMessage={handleSendMessage}
-          disabled={true}
+          disabled={isLoading}
           isStreaming={false}
         />
       </div>

@@ -36,9 +36,10 @@ api.interceptors.response.use(
 
       switch (status) {
         case 401:
-          // Unauthorized - clear tokens and redirect to login
+          // Clear all auth state — both raw tokens AND Zustand persisted store
           localStorage.removeItem('access_token');
           localStorage.removeItem('refresh_token');
+          localStorage.removeItem('auth-storage');
           window.location.href = '/login';
           break;
         case 403:

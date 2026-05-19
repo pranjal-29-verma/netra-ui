@@ -4,16 +4,21 @@ import toast from 'react-hot-toast';
 import { Message } from './Message';
 import { ChatInput } from './ChatInput';
 import { useChatStore } from '../../store/chatStore';
+import { useTokenStore } from '../../store/tokenStore';
 
 export const ChatArea: React.FC = () => {
   const { currentConversation, messages, isLoading, isStreaming, sendMessage, createConversation, fetchMessages } = useChatStore();
+  const { usage, fetchUsage } = useTokenStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  const isQuotaExhausted = usage ? usage.usage_percentage >= 100 : false;
+
   const handleSendMessage = async (content: string) => {
+    if (isQuotaExhausted) return;
     try {
       let conversationId = currentConversation?.id;
 
@@ -24,6 +29,7 @@ export const ChatArea: React.FC = () => {
       }
 
       await sendMessage(conversationId, content);
+      fetchUsage().catch(() => {});
     } catch {
       toast.error('Failed to send message');
     }
@@ -63,7 +69,7 @@ export const ChatArea: React.FC = () => {
 
         <ChatInput
           onSendMessage={handleSendMessage}
-          disabled={isLoading}
+          disabled={isLoading || isQuotaExhausted}
           isStreaming={false}
         />
       </div>
@@ -89,7 +95,7 @@ export const ChatArea: React.FC = () => {
       {/* Chat Input */}
       <ChatInput
         onSendMessage={handleSendMessage}
-        disabled={isLoading}
+        disabled={isLoading || isQuotaExhausted}
         isStreaming={isStreaming}
         onStopStreaming={handleStopStreaming}
       />

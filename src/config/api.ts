@@ -11,4 +11,7 @@ export const API_ENDPOINTS = {
   CONVERSATIONS: '/api/conversations',
   CONVERSATION: (id: number) => `/api/conversations/${id}`,
   MESSAGES: (id: number) => `/api/conversations/${id}/messages`,
+
+  // Token endpoints
+  TOKEN_USAGE: '/api/tokens/usage',
 };

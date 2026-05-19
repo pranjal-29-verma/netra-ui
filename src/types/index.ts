@@ -29,6 +29,20 @@ export interface RegisterCredentials {
   confirmPassword: string;
 }
 
+// Token types
+export interface TokenUsage {
+  tokens_used: number;
+  daily_quota: number;
+  remaining: number;
+  usage_percentage: number;
+  total_tokens_used: number;
+}
+
+export interface TokenState {
+  usage: TokenUsage | null;
+  fetchUsage: () => Promise<void>;
+}
+
 // Chat types
 export interface Conversation {
   id: number;

@@ -121,7 +121,7 @@ Background: #f9fafb (Gray 50)
 
 ---
 
-## 📋 Completed Features (Iteration 1-5)
+## 📋 Completed Features (Iteration 1-13)
 
 ### ✅ Iteration 1: Project Setup & Auth UI
 - React + TypeScript + Vite setup
@@ -141,7 +141,7 @@ Background: #f9fafb (Gray 50)
 - JWT token management
 - Toast notifications
 - Error handling
-- 401 auto-logout
+- 401 auto-logout (clears Zustand persist key to prevent re-hydration loop)
 
 **Key Files:**
 - `src/services/api.ts` - Axios config
@@ -166,46 +166,82 @@ Background: #f9fafb (Gray 50)
 - Markdown rendering
 - Copy message functionality
 - Empty states
-- Mock data integration
 
 **Key Files:**
 - `src/components/chat/*` - All chat components
 - `src/store/chatStore.ts` - Chat state management
 - `src/pages/Dashboard.tsx` - Main chat page
 
+### ✅ Iteration 6-7: Chat Backend Integration
+- Real conversation CRUD (create, list, delete)
+- Message persistence and history loading
+- `sendMessage` hits `POST /api/conversations/{id}/messages`
+- Auto-focus on textarea on dashboard load and after every send
+- Single JSX return branch in ChatArea to prevent ChatInput remount/focus loss
+
+**Key Files:**
+- `src/store/chatStore.ts` - Full API-connected store
+- `src/components/chat/ChatArea.tsx` - Single-branch render
+- `src/components/chat/ChatInput.tsx` - autoFocus + refocus after send
+
+### ✅ Iteration 8-9: Token Management
+- `GET /api/tokens/usage` polled after each message
+- `TokenUsageBar` in sidebar showing used / quota / percentage
+- Input disabled when daily quota exhausted
+
+**Key Files:**
+- `src/store/tokenStore.ts`
+- `src/components/chat/ConversationList.tsx` - TokenUsageBar rendered here
+
+### ✅ Iteration 10-11: Incognito Mode
+- Frontend-only incognito (no backend involvement)
+- Negative-ID local conversations (never sent to API)
+- Subtle purple indicator strip instead of dark theme
+- New Chat button hidden in incognito; users type to auto-create chat
+- `toggleIncognito` in chatStore preserves real conversations in list
+
+**Key Files:**
+- `src/store/chatStore.ts` - `buildLocalConversation`, `isIncognito`, `toggleIncognito`
+- `src/components/chat/ConversationList.tsx` - Purple indicator, hidden new-chat button
+- `src/components/chat/ChatArea.tsx` - Incognito banner
+
+### ✅ Iteration 12-13: Document Upload
+- Drag-and-drop file upload (PDF, TXT, DOCX, MD · 20 MB max)
+- URL input for web links
+- Document scope: **Knowledge Base** (global) vs **This Chat** (conversation-scoped)
+- Scope selector toggle in DocumentPanel
+- Scope badge on each document (Global / Conversation)
+- `GET /api/documents?conversation_id=` fetches global + scoped docs for current chat
+- Documents panel opens via paperclip button in ChatInput
+- Status badges: Ready / Processing / Failed
+- Delete on hover (removes from Supabase Storage + DB)
+- Warning shown when "This Chat" scope selected but no conversation open
+
+**Key Files:**
+- `src/components/chat/DocumentPanel.tsx` - Full document UI
+- `src/services/documentService.ts` - API calls with scope params
+- `src/store/documentStore.ts` - Document state
+- `src/types/index.ts` - Document interface with scope & conversation_id
+
 ---
 
 ## 🔜 Upcoming Features
 
-### Iteration 6-7: Chat Backend Integration
-- Connect to real chat API
-- Load conversations from backend
-- Persist messages
-- Create/delete conversations
+### Iteration 14: Vector Database Integration
+- ChromaDB setup
+- Document embedding generation
+- Vector storage and similarity search
 
-### Iteration 8-9: Token Management
-- Token usage display
-- Daily quota tracking
-- Warning notifications
-- Usage per message
+### Iteration 15: LLM Integration (RAG + Streaming)
+- Claude API integration
+- Retrieval-Augmented Generation from uploaded documents
+- Streaming responses (WebSocket or SSE)
+- Source citations in messages
 
-### Iteration 10-11: Incognito Mode
-- Toggle incognito mode
-- Visual indicators
-- Session-based chats
-- No persistence
-
-### Iteration 12-13: Document Upload
-- File upload UI
-- URL input
-- Document list
-- Progress indicators
-
-### Iteration 14-15: LLM Integration
-- Streaming responses
-- Source citations
-- Context from documents
-- Real-time updates
+### Iteration 16: Polish & Bug Fixes
+- Error handling improvements
+- UI/UX polish
+- Performance optimization
 
 ---
 
@@ -329,7 +365,7 @@ export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
 
 ## 📊 Progress Tracking
 
-**Current Iteration:** 5/16 (31% complete)
+**Current Iteration:** 13/16 (81% complete)
 
 | Feature | Status | Iteration |
 |---------|--------|-----------|
@@ -339,14 +375,14 @@ export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
 | Auth Integration | ✅ Done | 3 |
 | Google OAuth | ✅ Done | 4 |
 | Chat UI | ✅ Done | 5 |
-| Chat Backend | 🔜 Next | 6 |
-| Chat Integration | ⏳ Pending | 7 |
-| Token UI | ⏳ Pending | 8 |
-| Token Backend | ⏳ Pending | 9 |
-| Incognito UI | ⏳ Pending | 10 |
-| Incognito Backend | ⏳ Pending | 11 |
-| Document Upload | ⏳ Pending | 12-13 |
-| LLM Integration | ⏳ Pending | 14-15 |
+| Chat Backend | ✅ Done | 6 |
+| Chat Integration | ✅ Done | 7 |
+| Token UI | ✅ Done | 8 |
+| Token Backend | ✅ Done | 9 |
+| Incognito Mode | ✅ Done | 10-11 |
+| Document Upload | ✅ Done | 12-13 |
+| Vector DB | 🔜 Next | 14 |
+| LLM Integration (RAG) | ⏳ Pending | 15 |
 | Polish | ⏳ Pending | 16 |
 
 ---
@@ -410,5 +446,5 @@ npm test
 
 ---
 
-**Last Updated:** Iteration 5 Completed  
-**Next Update:** After Iteration 6 (Chat Backend Integration)
+**Last Updated:** Iteration 13 Completed  
+**Next Update:** After Iteration 14 (Vector DB Integration)

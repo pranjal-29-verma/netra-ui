@@ -14,4 +14,10 @@ export const API_ENDPOINTS = {
 
   // Token endpoints
   TOKEN_USAGE: '/api/tokens/usage',
+
+  // Document endpoints
+  DOCUMENTS: '/api/documents',
+  DOCUMENT_UPLOAD: '/api/documents/upload',
+  DOCUMENT_URL: '/api/documents/url',
+  DOCUMENT: (id: number) => `/api/documents/${id}`,
 };

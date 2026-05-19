@@ -3,6 +3,7 @@ import { Send, Paperclip, StopCircle } from 'lucide-react';
 
 interface ChatInputProps {
   onSendMessage: (message: string) => void;
+  onOpenDocuments?: () => void;
   disabled?: boolean;
   isStreaming?: boolean;
   onStopStreaming?: () => void;
@@ -10,6 +11,7 @@ interface ChatInputProps {
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSendMessage,
+  onOpenDocuments,
   disabled = false,
   isStreaming = false,
   onStopStreaming,
@@ -47,12 +49,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white p-4">
       <div className="max-w-4xl mx-auto">
         <div className="flex items-end space-x-2">
-          {/* File Upload Button - Will implement in Iteration 13 */}
           <button
             type="button"
+            onClick={onOpenDocuments}
             className="flex-shrink-0 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
-            title="Upload file (Coming soon)"
-            disabled
+            title="Manage documents"
           >
             <Paperclip className="w-5 h-5" />
           </button>

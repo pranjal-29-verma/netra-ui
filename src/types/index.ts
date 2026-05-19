@@ -29,6 +29,29 @@ export interface RegisterCredentials {
   confirmPassword: string;
 }
 
+// Document types
+export interface Document {
+  id: number;
+  user_id: number;
+  filename: string;
+  file_type: string;
+  file_size?: number;
+  source_url?: string;
+  status: 'ready' | 'processing' | 'failed';
+  scope: 'global' | 'conversation';
+  conversation_id?: number;
+  created_at: string;
+}
+
+export interface DocumentState {
+  documents: Document[];
+  isUploading: boolean;
+  fetchDocuments: (conversationId?: number) => Promise<void>;
+  uploadFile: (file: File, scope?: 'global' | 'conversation', conversationId?: number) => Promise<void>;
+  addUrl: (url: string, filename?: string, scope?: 'global' | 'conversation', conversationId?: number) => Promise<void>;
+  deleteDocument: (id: number) => Promise<void>;
+}
+
 // Token types
 export interface TokenUsage {
   tokens_used: number;

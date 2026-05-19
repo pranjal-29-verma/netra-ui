@@ -1,14 +1,16 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Message } from './Message';
 import { ChatInput } from './ChatInput';
+import { DocumentPanel } from './DocumentPanel';
 import { useChatStore } from '../../store/chatStore';
 import { useTokenStore } from '../../store/tokenStore';
 
 export const ChatArea: React.FC = () => {
   const { currentConversation, messages, isLoading, isStreaming, sendMessage, createConversation, fetchMessages, isIncognito } = useChatStore();
   const { usage, fetchUsage } = useTokenStore();
+  const [docPanelOpen, setDocPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -40,8 +42,12 @@ export const ChatArea: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full overflow-hidden">
 
+      {/* Document Panel */}
+      {docPanelOpen && <DocumentPanel onClose={() => setDocPanelOpen(false)} />}
+
+      <div className="flex flex-col flex-1 overflow-hidden">
       {/* Incognito banner — shown only when inside an incognito conversation */}
       {currentConversation?.is_incognito && (
         <div className="flex items-center justify-center gap-2 py-1.5 bg-purple-50 border-b border-purple-100 text-xs text-purple-600">
@@ -97,10 +103,12 @@ export const ChatArea: React.FC = () => {
       {/* Chat Input — always rendered at the same tree position, preventing remount on state change */}
       <ChatInput
         onSendMessage={handleSendMessage}
+        onOpenDocuments={() => setDocPanelOpen((o) => !o)}
         disabled={isLoading || isQuotaExhausted}
         isStreaming={isStreaming}
         onStopStreaming={handleStopStreaming}
       />
+      </div>
     </div>
   );
 };

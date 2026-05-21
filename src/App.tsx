@@ -4,6 +4,7 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { useAuthStore } from './store/authStore';
+import { useThemeStore, applyTheme } from './store/themeStore';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -29,12 +30,22 @@ const PublicRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 
 function App() {
   const { isAuthenticated, user } = useAuthStore();
+  const { theme } = useThemeStore();
 
   useEffect(() => {
-    // Check if user is authenticated on app load
-    if (isAuthenticated && user) {
-      console.log('User authenticated:', user.username);
-    }
+    applyTheme(theme);
+  }, [theme]);
+
+  useEffect(() => {
+    if (theme !== 'system') return;
+    const mq = window.matchMedia('(prefers-color-scheme: dark)');
+    const handler = () => applyTheme('system');
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [theme]);
+
+  useEffect(() => {
+    if (isAuthenticated && user) console.log('User authenticated:', user.username);
   }, [isAuthenticated, user]);
 
   return (

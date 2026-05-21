@@ -1,69 +1,100 @@
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 import type { InternalAxiosRequestConfig } from 'axios';
 import { API_BASE_URL } from '../config/api';
 
-// Create axios instance
 const api = axios.create({
   baseURL: API_BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-  timeout: 10000, // 10 seconds
+  headers: { 'Content-Type': 'application/json' },
+  timeout: 10000,
 });
 
-// Request interceptor - Add token to requests
-api.interceptors.request.use(
-  (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('access_token');
-    if (token && config.headers) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    return Promise.reject(error);
-  }
-);
+// Refresh token queue — prevents multiple simultaneous refresh calls
+let isRefreshing = false;
+let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
 
-// Response interceptor - Handle errors globally
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((p) => (error ? p.reject(error) : p.resolve(token!)));
+  failedQueue = [];
+};
+
+const clearAuthAndRedirect = () => {
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('auth-storage');
+  window.location.href = '/login';
+};
+
+api.interceptors.request.use((config: InternalAxiosRequestConfig) => {
+  const token = localStorage.getItem('access_token');
+  if (token && config.headers) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
-  (error: AxiosError<{ detail: string }>) => {
-    // Handle common errors
-    if (error.response) {
-      // Server responded with error status
-      const { status, data } = error.response;
+  async (error) => {
+    const original = error.config;
 
-      switch (status) {
-        case 401:
-          // Clear all auth state — both raw tokens AND Zustand persisted store
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          localStorage.removeItem('auth-storage');
-          window.location.href = '/login';
-          break;
-        case 403:
-          console.error('Forbidden:', data.detail);
-          break;
-        case 404:
-          console.error('Not found:', data.detail);
-          break;
-        case 500:
-          console.error('Server error:', data.detail);
-          break;
-        default:
-          console.error('Error:', data.detail);
+    if (error.response?.status === 401) {
+      // Never retry the refresh endpoint itself
+      if (original.url?.includes('/auth/refresh')) {
+        clearAuthAndRedirect();
+        return Promise.reject(error);
       }
-    } else if (error.request) {
-      // Request was made but no response received
-      console.error('Network error: Unable to reach server');
-    } else {
-      // Something else happened
-      console.error('Error:', error.message);
+
+      if (!original._retry) {
+        if (isRefreshing) {
+          // Queue this request until the ongoing refresh completes
+          return new Promise((resolve, reject) => {
+            failedQueue.push({ resolve, reject });
+          }).then((token) => {
+            original.headers.Authorization = `Bearer ${token}`;
+            return api(original);
+          });
+        }
+
+        original._retry = true;
+        isRefreshing = true;
+
+        const refreshToken = localStorage.getItem('refresh_token');
+        if (!refreshToken) {
+          clearAuthAndRedirect();
+          return Promise.reject(error);
+        }
+
+        try {
+          const { data } = await axios.post(`${API_BASE_URL}/api/auth/refresh`, {
+            refresh_token: refreshToken,
+          });
+
+          localStorage.setItem('access_token', data.access_token);
+          localStorage.setItem('refresh_token', data.refresh_token);
+
+          // Update Zustand store token without triggering a re-render loop
+          const { useAuthStore } = await import('../store/authStore');
+          useAuthStore.getState().setToken(data.access_token);
+
+          api.defaults.headers.common['Authorization'] = `Bearer ${data.access_token}`;
+          processQueue(null, data.access_token);
+
+          original.headers.Authorization = `Bearer ${data.access_token}`;
+          return api(original);
+        } catch (refreshError) {
+          processQueue(refreshError, null);
+          clearAuthAndRedirect();
+          return Promise.reject(refreshError);
+        } finally {
+          isRefreshing = false;
+        }
+      }
     }
 
+    if (error.response?.status === 403) console.error('Forbidden:', error.response.data?.detail);
+    if (error.response?.status === 500) console.error('Server error:', error.response.data?.detail);
+    if (!error.response) console.error('Network error: Unable to reach server');
+
     return Promise.reject(error);
-  }
+  },
 );
 
 export default api;

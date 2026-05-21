@@ -15,6 +15,7 @@ export interface AuthState {
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User, token: string) => void;
+  setToken: (token: string) => void;
 }
 
 export interface LoginCredentials {

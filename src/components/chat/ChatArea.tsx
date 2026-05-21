@@ -2,13 +2,14 @@ import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Message } from './Message';
+import { MessageSkeleton } from './MessageSkeleton';
 import { ChatInput } from './ChatInput';
 import { DocumentPanel } from './DocumentPanel';
 import { useChatStore } from '../../store/chatStore';
 import { useTokenStore } from '../../store/tokenStore';
 
 export const ChatArea: React.FC = () => {
-  const { currentConversation, messages, isLoading, isStreaming, sendMessage, stopStreaming, createConversation, fetchMessages, isIncognito } = useChatStore();
+  const { currentConversation, messages, isLoading, isLoadingMessages, isStreaming, sendMessage, stopStreaming, createConversation, fetchMessages, isIncognito } = useChatStore();
   const { usage, fetchUsage } = useTokenStore();
   const [docPanelOpen, setDocPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -80,6 +81,8 @@ export const ChatArea: React.FC = () => {
                   </div>
                 )}
               </div>
+            ) : isLoadingMessages ? (
+              <MessageSkeleton />
             ) : messages.length === 0 ? (
               <div className="text-center py-12">
                 <p className="text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>

@@ -101,6 +101,7 @@ export interface ChatState {
   currentConversation: Conversation | null;
   messages: Message[];
   isLoading: boolean;
+  isLoadingMessages: boolean;
   isStreaming: boolean;
   isIncognito: boolean;
   setConversations: (conversations: Conversation[]) => void;

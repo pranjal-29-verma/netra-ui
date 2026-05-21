@@ -103,6 +103,9 @@ export interface ChatState {
   isLoading: boolean;
   isLoadingMessages: boolean;
   isLoadingConversations: boolean;
+  isLoadingMore: boolean;
+  hasMoreConversations: boolean;
+  conversationOffset: number;
   isStreaming: boolean;
   isIncognito: boolean;
   setConversations: (conversations: Conversation[]) => void;
@@ -113,6 +116,7 @@ export interface ChatState {
   setIsStreaming: (streaming: boolean) => void;
   toggleIncognito: () => void;
   fetchConversations: () => Promise<void>;
+  loadMoreConversations: () => Promise<void>;
   createConversation: () => Promise<Conversation>;
   deleteConversation: (id: number) => Promise<void>;
   fetchMessages: (conversationId: number) => Promise<void>;

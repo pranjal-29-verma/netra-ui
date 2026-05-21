@@ -8,8 +8,10 @@ interface SendMessageResponse {
 }
 
 const chatService = {
-  async getConversations(): Promise<Conversation[]> {
-    const response = await api.get<Conversation[]>(API_ENDPOINTS.CONVERSATIONS);
+  async getConversations(limit = 20, offset = 0): Promise<Conversation[]> {
+    const response = await api.get<Conversation[]>(API_ENDPOINTS.CONVERSATIONS, {
+      params: { limit, offset },
+    });
     return response.data;
   },
 

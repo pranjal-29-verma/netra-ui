@@ -1,464 +1,212 @@
 # Netra Chatbot - Frontend Project Plan
 
-## 🎯 Project Overview
+## Project Overview
 
 **Project Name:** Netra Chatbot Frontend  
 **Description:** React-based chat interface for personal knowledge chatbot  
 **Tech Stack:**
-- React 18 + TypeScript
+- React 19 + TypeScript
 - Vite (build tool)
-- Tailwind CSS (styling)
-- Zustand (state management)
+- Tailwind CSS v3 (styling, darkMode: 'class')
+- Zustand v5 (state management)
 - Axios (HTTP client)
 - React Router (routing)
+- react-markdown + remark-gfm (markdown rendering)
+- react-hot-toast (notifications)
 
 ---
 
-## 📦 Dependencies
+## Development Workflow (AI_CODE_CLI_RULES.md)
 
-### Core Dependencies
-```json
-{
-  "react": "^18.x",
-  "react-dom": "^18.x",
-  "react-router-dom": "^6.x",
-  "zustand": "^4.x",
-  "axios": "^1.x",
-  "lucide-react": "^0.x"
-}
+Before every task:
+1. `git checkout main && git fetch origin && git pull origin main`
+2. `git checkout -b <feature|bugfix|hotfix|refactor>/<name>`
+3. Implement changes
+4. Show modified files + summary → ask user before committing
+5. Commit format:
 ```
+<TicketNo> : One line summary
 
-### Auth & OAuth
-```json
-{
-  "@react-oauth/google": "^0.x",
-  "react-hot-toast": "^2.x"
-}
-```
+What is changed?
+--------------
+- list of changes
 
-### Styling
-```json
-{
-  "tailwindcss": "^3.x",
-  "autoprefixer": "^10.x",
-  "postcss": "^8.x"
-}
+Testing
+--------------
+- testing performed
 ```
-
-### Markdown & Rich Text
-```json
-{
-  "react-markdown": "^9.x",
-  "remark-gfm": "^4.x",
-  "rehype-highlight": "^7.x"
-}
-```
+Never commit directly to main. Never push without explicit user approval.
 
 ---
 
-## 🗂️ Project Structure
+## Project Structure
+
+```
 netra-ui/
-├── public/                        # Static assets
 ├── src/
 │   ├── components/
-│   │   ├── auth/                  # Authentication components
-│   │   │   ├── AuthLayout.tsx
-│   │   │   ├── LoginForm.tsx
-│   │   │   └── RegisterForm.tsx
-│   │   ├── chat/                  # Chat interface components
-│   │   │   ├── ChatLayout.tsx
-│   │   │   ├── ChatArea.tsx
-│   │   │   ├── ChatInput.tsx
-│   │   │   ├── Message.tsx
-│   │   │   └── ConversationList.tsx
-│   │   └── common/                # Reusable components
-│   │       ├── Button.tsx
-│   │       └── Input.tsx
-│   ├── pages/
-│   │   ├── Login.tsx
-│   │   ├── Register.tsx
-│   │   └── Dashboard.tsx
-│   ├── services/
-│   │   ├── api.ts                 # Axios instance
-│   │   └── authService.ts         # Auth API calls
-│   ├── store/
-│   │   ├── authStore.ts           # Auth state
-│   │   └── chatStore.ts           # Chat state
-│   ├── types/
-│   │   └── index.ts               # TypeScript types
-│   ├── config/
-│   │   └── api.ts                 # API configuration
-│   ├── App.tsx                    # Main app component
-│   ├── main.tsx                   # Entry point
-│   └── index.css                  # Global styles
-├── .env                           # Environment variables
-├── tailwind.config.js
-├── tsconfig.json
-├── vite.config.ts
-└── package.json
-
----
-
-## 🎨 Design System
-
-### Colors
-```css
-Primary: #0284c7 (Sky Blue)
-Primary Hover: #0369a1
-Success: #10b981 (Green)
-Error: #ef4444 (Red)
-Warning: #f59e0b (Amber)
-Background: #f9fafb (Gray 50)
-```
-
-### Component Classes
-```css
-.btn-primary         - Primary button style
-.btn-secondary       - Secondary button style
-.input-field         - Input field style
-.card                - Card container
+│   │   ├── auth/               # LoginForm, RegisterForm, AuthLayout
+│   │   ├── chat/               # ChatLayout, ChatArea, ChatInput, Message,
+│   │   │                       # ConversationList, DocumentPanel,
+│   │   │                       # TokenUsageBar, SettingsModal
+│   │   └── common/             # Button, Input
+│   ├── pages/                  # Login, Register, Dashboard
+│   ├── services/               # api.ts (axios + refresh interceptor), authService, documentService
+│   ├── store/                  # authStore, chatStore, tokenStore, documentStore, themeStore
+│   ├── types/index.ts
+│   ├── config/api.ts           # API endpoint constants
+│   ├── App.tsx                 # Theme wiring
+│   └── index.css
+├── tailwind.config.js          # darkMode: 'class', primary palette
+├── AI_CODE_CLI_RULES.md
+└── PROJECT_PLAN.md
 ```
 
 ---
 
-## 📋 Completed Features (Iteration 1-13)
+## Completed Iterations
 
 ### ✅ Iteration 1: Project Setup & Auth UI
-- React + TypeScript + Vite setup
-- Tailwind CSS configuration
-- Login page with validation
-- Registration page
-- Protected routes
-- Zustand store structure
+- React + TypeScript + Vite + Tailwind CSS
+- Login / Register pages with validation
+- Protected routes, Zustand store structure
 
 ### ✅ Iteration 2: Authentication Backend Integration
-- (No frontend changes - backend only)
+- Backend only (no frontend changes)
 
 ### ✅ Iteration 3: Connect Auth to Backend
 - Axios instance with interceptors
-- Auth service layer
-- Real API integration
-- JWT token management
-- Toast notifications
-- Error handling
-- 401 auto-logout (clears Zustand persist key to prevent re-hydration loop)
-
-**Key Files:**
-- `src/services/api.ts` - Axios config
-- `src/services/authService.ts` - Auth API
-- `src/store/authStore.ts` - Updated with real API
+- Auth service layer, JWT token management
+- Toast notifications, 401 auto-logout
 
 ### ✅ Iteration 4: Google OAuth
-- Google OAuth provider setup
-- Google login button
-- One-click authentication
+- Google OAuth provider, one-click login
 - Auto account creation
 
-**Key Files:**
-- `src/main.tsx` - Wrapped with GoogleOAuthProvider
-- `src/components/auth/LoginForm.tsx` - Google button logic
-
 ### ✅ Iteration 5: Chat Interface UI
-- Chat layout with sidebar
-- Conversation list
-- Message components
-- Chat input with auto-resize
-- Markdown rendering
-- Copy message functionality
-- Empty states
+- Chat layout with sidebar, conversation list
+- Message components, auto-resize textarea
+- Markdown rendering, copy button, empty states
 
-**Key Files:**
-- `src/components/chat/*` - All chat components
-- `src/store/chatStore.ts` - Chat state management
-- `src/pages/Dashboard.tsx` - Main chat page
-
-### ✅ Iteration 6-7: Chat Backend Integration
+### ✅ Iteration 6–7: Chat Backend Integration
 - Real conversation CRUD (create, list, delete)
 - Message persistence and history loading
-- `sendMessage` hits `POST /api/conversations/{id}/messages`
-- Auto-focus on textarea on dashboard load and after every send
-- Single JSX return branch in ChatArea to prevent ChatInput remount/focus loss
+- Auto-focus textarea on send
 
-**Key Files:**
-- `src/store/chatStore.ts` - Full API-connected store
-- `src/components/chat/ChatArea.tsx` - Single-branch render
-- `src/components/chat/ChatInput.tsx` - autoFocus + refocus after send
-
-### ✅ Iteration 8-9: Token Management
+### ✅ Iteration 8–9: Token Management
 - `GET /api/tokens/usage` polled after each message
-- `TokenUsageBar` in sidebar showing used / quota / percentage
+- `TokenUsageBar` in sidebar: used / quota / percentage
 - Input disabled when daily quota exhausted
 
-**Key Files:**
-- `src/store/tokenStore.ts`
-- `src/components/chat/ConversationList.tsx` - TokenUsageBar rendered here
-
-### ✅ Iteration 10-11: Incognito Mode
-- Frontend-only incognito (no backend involvement)
+### ✅ Iteration 10–11: Incognito Mode
 - Negative-ID local conversations (never sent to API)
-- Subtle purple indicator strip instead of dark theme
-- New Chat button hidden in incognito; users type to auto-create chat
-- `toggleIncognito` in chatStore preserves real conversations in list
+- Real LLM via stateless `/api/chat/stream` endpoint (no DB writes)
+- Message history sent with each request for multi-turn context
+- Purple incognito banner; conversations lost on refresh
 
-**Key Files:**
-- `src/store/chatStore.ts` - `buildLocalConversation`, `isIncognito`, `toggleIncognito`
-- `src/components/chat/ConversationList.tsx` - Purple indicator, hidden new-chat button
-- `src/components/chat/ChatArea.tsx` - Incognito banner
-
-### ✅ Iteration 12-13: Document Upload
+### ✅ Iteration 12–13: Document Upload
 - Drag-and-drop file upload (PDF, TXT, DOCX, MD · 20 MB max)
 - URL input for web links
-- Document scope: **Knowledge Base** (global) vs **This Chat** (conversation-scoped)
-- Scope selector toggle in DocumentPanel
-- Scope badge on each document (Global / Conversation)
-- `GET /api/documents?conversation_id=` fetches global + scoped docs for current chat
-- Documents panel opens via paperclip button in ChatInput
+- Document scope: Knowledge Base (global) vs This Chat (conversation-scoped)
 - Status badges: Ready / Processing / Failed
-- Delete on hover (removes from Supabase Storage + DB)
-- Warning shown when "This Chat" scope selected but no conversation open
+- Delete on hover
 
-**Key Files:**
-- `src/components/chat/DocumentPanel.tsx` - Full document UI
-- `src/services/documentService.ts` - API calls with scope params
-- `src/store/documentStore.ts` - Document state
-- `src/types/index.ts` - Document interface with scope & conversation_id
+### ✅ Iteration 14: Vector Database Integration
+- pgvector on Supabase
+- Voyage AI embeddings
+- Similarity search integrated into RAG pipeline
 
----
-
-## 🔜 Upcoming Features
-
-### Iteration 14: Vector Database Integration
-- ChromaDB setup
-- Document embedding generation
-- Vector storage and similarity search
-
-### Iteration 15: LLM Integration (RAG + Streaming) 🔄 In Progress
-- SSE streaming: `sendMessage` reads fetch stream, updates assistant message progressively
-- Streaming cursor shown while response arrives
+### ✅ Iteration 15: LLM Integration (RAG + Streaming)
+- SSE streaming via `StreamingResponse` (backend) + `ReadableStream` (frontend)
+- Streaming cursor + WhatsApp-style typing indicator
 - Stop streaming button (AbortController)
-- Source citations shown below assistant messages (document filename + type badge)
-- Real token count shown in message metadata
-- LiteLLM on backend — switch provider by changing `LLM_MODEL` in backend `.env`
+- Source citations below assistant messages (deduplicated by document_id)
+- URL sources as clickable links with URL shown on hover
+- Real token count in message metadata
+- LiteLLM backend — switch provider via `LLM_MODEL` in `.env`
+- Error SSE event handling (rate limit, quota exhaustion)
 
-**Key Files:**
-- `src/store/chatStore.ts` — SSE stream reader, optimistic UI, `stopStreaming` action
-- `src/components/chat/Message.tsx` — streaming cursor + source citations
-- `src/types/index.ts` — `MessageSource` type, `isStreaming` flag on Message
-
-### Iteration 16: Polish & Bug Fixes
-- Error handling improvements
-- UI/UX polish
-- Performance optimization
-
-### Future: Admin Panel (Phase 5)
-- Admin role + protected admin routes
-- Model + API key configuration from UI (stored encrypted in DB)
-- All users share admin-configured model — no per-user model selection
-- Per-user token quotas managed by admin
-- **Why Phase 5 and not an iteration:** encrypted key storage, admin auth, and admin UI are 6-8 components that must be done correctly from a security standpoint
+### ✅ Iteration 16: Dark Mode, Settings, Refresh Token Renewal
+- Dark / Light / System theme toggle with persisted `themeStore`
+- System mode follows OS preference via `matchMedia` listener
+- Theme moved into `SettingsModal` (gear icon in sidebar footer)
+- Refresh token interceptor with concurrent-request queue (breaks circular dep via dynamic import)
+- Chat input footer dark background fix
+- Daily token quota + access token expiry configurable from `.env`
+- Gen-Z IST quota exhaustion message
 
 ---
 
-## 🔐 Environment Variables
+## Pending Enhancements & Bugs
 
-**`.env` file:**
+| # | Item | Type | Status |
+|---|------|------|--------|
+| E1 | User message bubble + avatar CSS mismatch vs AI side | Bug | Pending |
+| E2 | Search conversations / messages | Enhancement | Pending |
+| E3 | Profile settings in Settings modal | Enhancement | Flow TBD |
+| E4 | Payment gateway integration | Enhancement | Flow TBD |
+| E5 | Mobile responsive collapsible sidebar | Enhancement | Pending |
+| E6a | Skeleton loader — conversation list | Enhancement | Pending |
+| E6b | Skeleton loader — messages (no flash of empty state) | Bug fix | Pending |
+| E6c | Skeleton loader — token usage bar | Enhancement | Pending |
+| E7 | Claude-style settings page per user (verify with user first) | Enhancement | Flow TBD |
+
+---
+
+## Phase 5: Admin Panel (Upcoming)
+
+Deliberately deferred — requires encrypted key storage, admin auth, and 6–8 new components:
+
+- Admin role + protected admin routes
+- Model & API key config from UI (stored encrypted in DB)
+- Per-user token quota management by admin
+- All users share the admin-configured model
+- Admin dashboard: user list, usage stats
+
+---
+
+## Environment Variables
+
+**netra-ui `.env`:**
 ```env
 VITE_API_URL=http://localhost:8000
 VITE_GOOGLE_CLIENT_ID=your-google-client-id.apps.googleusercontent.com
 ```
 
----
-
-## 🐛 Technical Notes & Fixes
-
-### Issue 1: TypeScript Import Error
-**Problem:** Importing `InternalAxiosRequestConfig` as value causes runtime error  
-**Solution:** Use `import type { InternalAxiosRequestConfig }`  
-**Affected:** `src/services/api.ts`
-
-```typescript
-// ❌ Wrong
-import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
-
-// ✅ Correct
-import axios, { AxiosError } from 'axios';
-import type { InternalAxiosRequestConfig } from 'axios';
-```
-
-### Issue 2: react-hot-toast API
-**Problem:** `toast.info()` doesn't exist  
-**Solution:** Use `toast()`, `toast.success()`, or `toast.error()`
-
-```typescript
-// ❌ Wrong
-toast.info('Message');
-
-// ✅ Correct
-toast('Message');
-toast.success('Success message');
-toast.error('Error message');
-```
-
-### Issue 3: Tailwind v4 vs v3
-**Problem:** Tailwind v4 has breaking changes  
-**Solution:** Use Tailwind v3 for stability  
-**Command:** `npm install -D tailwindcss@^3`
-
----
-
-## 🎯 Component Guidelines
-
-### Import Order
-```typescript
-// 1. React imports
-import React, { useState, useEffect } from 'react';
-
-// 2. Third-party libraries
-import { useNavigate } from 'react-router-dom';
-import toast from 'react-hot-toast';
-
-// 3. Internal components
-import { Button } from '../common/Button';
-
-// 4. Stores & services
-import { useAuthStore } from '../../store/authStore';
-import authService from '../../services/authService';
-
-// 5. Types (with 'type' keyword)
-import type { User } from '../../types';
-```
-
-### Type Imports
-Always use `import type` for TypeScript types:
-```typescript
-import type { User, Message, Conversation } from '../types';
-```
-
-### Component Structure
-```typescript
-interface ComponentProps {
-  // Props definition
-}
-
-export const Component: React.FC<ComponentProps> = ({ prop1, prop2 }) => {
-  // 1. Hooks
-  const [state, setState] = useState();
-  const navigate = useNavigate();
-  
-  // 2. Event handlers
-  const handleClick = () => {};
-  
-  // 3. Effects
-  useEffect(() => {}, []);
-  
-  // 4. Render
-  return <div>...</div>;
-};
+**netra-app `.env`:**
+```env
+LLM_MODEL=gemini/gemini-2.0-flash
+GEMINI_API_KEY=...
+VOYAGE_API_KEY=...
+DATABASE_URL=...
+ACCESS_TOKEN_EXPIRE_MINUTES=60
+REFRESH_TOKEN_EXPIRE_DAYS=7
+DEFAULT_DAILY_TOKEN_QUOTA=100000
 ```
 
 ---
 
-## 🧪 Testing Strategy (To be implemented)
+## Progress
 
-### Unit Tests
-- Component rendering
-- User interactions
-- State management
+**Current Status:** All 16 iterations complete. Working on enhancements before Phase 5.
 
-### Integration Tests
-- API calls
-- Form submissions
-- Navigation flows
-
-### E2E Tests
-- Complete user journeys
-- Authentication flow
-- Chat functionality
-
----
-
-## 📊 Progress Tracking
-
-**Current Iteration:** 13/16 (81% complete)
-
-| Feature | Status | Iteration |
-|---------|--------|-----------|
-| Project Setup | ✅ Done | 1 |
-| Auth UI | ✅ Done | 1 |
-| Auth Backend | ✅ Done | 2 |
-| Auth Integration | ✅ Done | 3 |
-| Google OAuth | ✅ Done | 4 |
-| Chat UI | ✅ Done | 5 |
-| Chat Backend | ✅ Done | 6 |
-| Chat Integration | ✅ Done | 7 |
-| Token UI | ✅ Done | 8 |
-| Token Backend | ✅ Done | 9 |
-| Incognito Mode | ✅ Done | 10-11 |
-| Document Upload | ✅ Done | 12-13 |
-| Vector DB | 🔜 Next | 14 |
-| LLM Integration (RAG) | ⏳ Pending | 15 |
-| Polish | ⏳ Pending | 16 |
+| Feature | Status |
+|---------|--------|
+| Project Setup + Auth UI | ✅ Done |
+| Auth Backend Integration | ✅ Done |
+| Auth Integration | ✅ Done |
+| Google OAuth | ✅ Done |
+| Chat UI | ✅ Done |
+| Chat Backend Integration | ✅ Done |
+| Token Management | ✅ Done |
+| Incognito Mode (real LLM) | ✅ Done |
+| Document Upload | ✅ Done |
+| Vector DB (pgvector + Voyage AI) | ✅ Done |
+| LLM Integration / RAG / Streaming | ✅ Done |
+| Dark Mode + Settings + Refresh Token | ✅ Done |
+| Enhancements E1–E7 | 🔜 In Progress |
+| Phase 5: Admin Panel | ⏳ Pending |
 
 ---
 
-## 🚀 Quick Start
-
-### Development
-```bash
-# Install dependencies
-npm install
-
-# Start dev server
-npm run dev
-
-# Build for production
-npm run build
-
-# Preview production build
-npm run preview
-```
-
-### Code Quality
-```bash
-# Run linter (when configured)
-npm run lint
-
-# Run tests (when configured)
-npm test
-```
-
----
-
-## 🎨 UI/UX Guidelines
-
-### Responsive Design
-- Mobile-first approach
-- Breakpoints: sm (640px), md (768px), lg (1024px), xl (1280px)
-- Collapsible sidebar on mobile
-
-### Accessibility
-- ARIA labels for interactive elements
-- Keyboard navigation support
-- Color contrast compliance (WCAG AA)
-- Screen reader friendly
-
-### Performance
-- Code splitting with React.lazy()
-- Image optimization
-- Debounced search inputs
-- Virtualized lists for long conversations
-
----
-
-## 📚 Resources
-
-- **React Docs:** https://react.dev/
-- **Vite Docs:** https://vitejs.dev/
-- **Tailwind CSS:** https://tailwindcss.com/
-- **Zustand:** https://github.com/pmndrs/zustand
-- **React Router:** https://reactrouter.com/
-
----
-
-**Last Updated:** Iteration 15 In Progress  
-**Next Update:** After Iteration 15 (LLM Integration)
+**Last Updated:** Iteration 16 complete — starting enhancements E1–E7

@@ -28,6 +28,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   currentConversation: null,
   messages: [],
   isLoading: false,
+  isLoadingMessages: false,
   isStreaming: false,
   isIncognito: false,
 
@@ -115,12 +116,12 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Negative ID = incognito — messages already live in state, nothing to fetch
     if (conversationId < 0) return;
 
-    set({ isLoading: true });
+    set({ isLoadingMessages: true, messages: [] });
     try {
       const messages = await chatService.getMessages(conversationId);
       set({ messages });
     } finally {
-      set({ isLoading: false });
+      set({ isLoadingMessages: false });
     }
   },
 

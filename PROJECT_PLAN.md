@@ -232,16 +232,30 @@ Background: #f9fafb (Gray 50)
 - Document embedding generation
 - Vector storage and similarity search
 
-### Iteration 15: LLM Integration (RAG + Streaming)
-- Claude API integration
-- Retrieval-Augmented Generation from uploaded documents
-- Streaming responses (WebSocket or SSE)
-- Source citations in messages
+### Iteration 15: LLM Integration (RAG + Streaming) 🔄 In Progress
+- SSE streaming: `sendMessage` reads fetch stream, updates assistant message progressively
+- Streaming cursor shown while response arrives
+- Stop streaming button (AbortController)
+- Source citations shown below assistant messages (document filename + type badge)
+- Real token count shown in message metadata
+- LiteLLM on backend — switch provider by changing `LLM_MODEL` in backend `.env`
+
+**Key Files:**
+- `src/store/chatStore.ts` — SSE stream reader, optimistic UI, `stopStreaming` action
+- `src/components/chat/Message.tsx` — streaming cursor + source citations
+- `src/types/index.ts` — `MessageSource` type, `isStreaming` flag on Message
 
 ### Iteration 16: Polish & Bug Fixes
 - Error handling improvements
 - UI/UX polish
 - Performance optimization
+
+### Future: Admin Panel (Phase 5)
+- Admin role + protected admin routes
+- Model + API key configuration from UI (stored encrypted in DB)
+- All users share admin-configured model — no per-user model selection
+- Per-user token quotas managed by admin
+- **Why Phase 5 and not an iteration:** encrypted key storage, admin auth, and admin UI are 6-8 components that must be done correctly from a security standpoint
 
 ---
 
@@ -446,5 +460,5 @@ npm test
 
 ---
 
-**Last Updated:** Iteration 13 Completed  
-**Next Update:** After Iteration 14 (Vector DB Integration)
+**Last Updated:** Iteration 15 In Progress  
+**Next Update:** After Iteration 15 (LLM Integration)

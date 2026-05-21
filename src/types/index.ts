@@ -77,14 +77,21 @@ export interface Conversation {
   messages?: Message[];
 }
 
+export interface MessageSource {
+  document_id: number;
+  filename: string;
+  file_type: string;
+}
+
 export interface Message {
   id: number;
   conversation_id: number;
   role: 'user' | 'assistant';
   content: string;
   tokens_used?: number;
-  sources?: any[];
+  sources?: MessageSource[];
   created_at: string;
+  isStreaming?: boolean; // local-only flag, not persisted
 }
 
 export interface ChatState {
@@ -106,4 +113,5 @@ export interface ChatState {
   deleteConversation: (id: number) => Promise<void>;
   fetchMessages: (conversationId: number) => Promise<void>;
   sendMessage: (conversationId: number, content: string) => Promise<void>;
+  stopStreaming: () => void;
 }

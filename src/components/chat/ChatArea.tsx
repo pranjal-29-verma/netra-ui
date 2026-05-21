@@ -8,7 +8,7 @@ import { useChatStore } from '../../store/chatStore';
 import { useTokenStore } from '../../store/tokenStore';
 
 export const ChatArea: React.FC = () => {
-  const { currentConversation, messages, isLoading, isStreaming, sendMessage, createConversation, fetchMessages, isIncognito } = useChatStore();
+  const { currentConversation, messages, isLoading, isStreaming, sendMessage, stopStreaming, createConversation, fetchMessages, isIncognito } = useChatStore();
   const { usage, fetchUsage } = useTokenStore();
   const [docPanelOpen, setDocPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -38,7 +38,7 @@ export const ChatArea: React.FC = () => {
   };
 
   const handleStopStreaming = () => {
-    // Will implement in Iteration 15
+    stopStreaming();
   };
 
   return (

@@ -68,7 +68,16 @@ export const TokenUsageBar: React.FC = () => {
 
       {isExhausted && (
         <p className="text-xs text-red-500 mt-1.5 font-medium">
-          Messaging disabled. Quota resets at midnight UTC.
+          {(() => {
+            const nextMidnightUTC = new Date();
+            nextMidnightUTC.setUTCHours(24, 0, 0, 0);
+            const resetTime = nextMidnightUTC.toLocaleTimeString('en-IN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              timeZone: 'Asia/Kolkata',
+            });
+            return `bruh you cooked all the tokens 💀 come back at ${resetTime} IST no cap`;
+          })()}
         </p>
       )}
     </div>

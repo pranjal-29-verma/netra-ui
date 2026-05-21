@@ -64,7 +64,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             value={message}
             onChange={handleChange}
             onKeyDown={handleKeyDown}
-            placeholder="Type your message... (Shift+Enter for new line)"
+            placeholder="Type your message..."
             disabled={disabled}
             rows={1}
             autoFocus
@@ -93,9 +93,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           )}
         </div>
 
-        <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 text-center">
-          Press Enter to send, Shift+Enter for new line
-        </div>
+        <p className="mt-2 text-xs text-gray-400 dark:text-gray-500 text-center">
+          &copy; 2026 Netra Chat. All rights reserved.
+        </p>
       </div>
     </form>
   );

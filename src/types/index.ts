@@ -81,6 +81,7 @@ export interface MessageSource {
   document_id: number;
   filename: string;
   file_type: string;
+  source_url?: string;
 }
 
 export interface Message {

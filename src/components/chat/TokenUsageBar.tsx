@@ -38,11 +38,11 @@ export const TokenUsageBar: React.FC = () => {
     : 'text-gray-500';
 
   return (
-    <div className="px-4 py-3 border-t border-gray-200">
+    <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
       <div className="flex items-center justify-between mb-1">
         <div className="flex items-center gap-1.5">
           <Zap className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-medium text-gray-600">Daily Tokens</span>
+          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Daily Tokens</span>
         </div>
         <span className={`text-xs font-medium ${textColor}`}>
           {isExhausted ? 'Quota reached' : `${pct.toFixed(0)}% used`}
@@ -50,7 +50,7 @@ export const TokenUsageBar: React.FC = () => {
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-gray-200 rounded-full h-1.5">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
         <div
           className={`h-1.5 rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${pct}%` }}
@@ -58,10 +58,10 @@ export const TokenUsageBar: React.FC = () => {
       </div>
 
       <div className="flex justify-between mt-1">
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-400 dark:text-gray-500">
           {usage.tokens_used.toLocaleString()} used
         </span>
-        <span className="text-xs text-gray-400">
+        <span className="text-xs text-gray-400 dark:text-gray-500">
           {usage.daily_quota.toLocaleString()} limit
         </span>
       </div>

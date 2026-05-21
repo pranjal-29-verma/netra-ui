@@ -44,7 +44,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
           <div className={`group relative px-4 py-3 rounded-2xl ${
             isUser
               ? 'bg-primary-600 text-white rounded-tr-sm'
-              : 'bg-white text-gray-900 border border-gray-200 rounded-tl-sm'
+              : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700 rounded-tl-sm'
           }`}>
             <div className={`prose prose-sm max-w-none ${isUser ? 'prose-invert' : ''}`}>
               {isUser ? (
@@ -54,9 +54,9 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                   {message.isStreaming && !message.content ? (
                     // Waiting for first token — WhatsApp-style typing indicator
                     <span className="flex items-center gap-1 py-1">
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:0ms]" />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:150ms]" />
-                      <span className="w-2 h-2 bg-gray-400 rounded-full animate-bounce [animation-delay:300ms]" />
+                      <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
+                      <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
+                      <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
                     </span>
                   ) : (
                     <>
@@ -76,7 +76,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
             {!isUser && !message.isStreaming && message.content && (
               <button
                 onClick={handleCopy}
-                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-gray-100 hover:bg-gray-200 rounded-lg transition-all"
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1.5 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-lg transition-all"
                 title="Copy message"
               >
                 {copied ? <Check className="w-4 h-4 text-green-600" /> : <Copy className="w-4 h-4 text-gray-600" />}
@@ -85,7 +85,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
           </div>
 
           {/* Metadata */}
-          <div className={`flex items-center mt-1 text-xs text-gray-500 ${isUser ? 'justify-end' : 'justify-start'}`}>
+          <div className={`flex items-center mt-1 text-xs text-gray-500 dark:text-gray-400 ${isUser ? 'justify-end' : 'justify-start'}`}>
             <span>
               {new Date(message.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
             </span>

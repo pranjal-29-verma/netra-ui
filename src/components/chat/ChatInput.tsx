@@ -46,10 +46,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white p-4">
+    <form onSubmit={handleSubmit} className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
       <div className="max-w-4xl mx-auto">
         {/* Single unified container — border on wrapper, icons inside */}
-        <div className="flex items-end border border-gray-300 rounded-lg bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent transition-all">
+        <div className="flex items-end border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent transition-all">
           <button
             type="button"
             onClick={onOpenDocuments}
@@ -68,7 +68,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             disabled={disabled}
             rows={1}
             autoFocus
-            className="flex-1 py-3 bg-transparent outline-none resize-none disabled:text-gray-400 placeholder-gray-400 text-gray-900"
+            className="flex-1 py-3 bg-transparent outline-none resize-none disabled:text-gray-400 dark:disabled:text-gray-500 placeholder-gray-400 dark:placeholder-gray-500 text-gray-900 dark:text-gray-100"
             style={{ minHeight: '48px', maxHeight: '200px' }}
           />
 
@@ -93,7 +93,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           )}
         </div>
 
-        <div className="mt-2 text-xs text-gray-500 text-center">
+        <div className="mt-2 text-xs text-gray-400 dark:text-gray-500 text-center">
           Press Enter to send, Shift+Enter for new line
         </div>
       </div>

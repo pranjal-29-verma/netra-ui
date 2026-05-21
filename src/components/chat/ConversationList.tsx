@@ -5,6 +5,7 @@ import type { Conversation } from '../../types';
 import { useChatStore } from '../../store/chatStore';
 import { TokenUsageBar } from './TokenUsageBar';
 import { ConversationSkeleton } from './ConversationSkeleton';
+import { useSidebar } from './ChatLayout';
 
 const HighlightedTitle: React.FC<{ title: string; query: string }> = ({ title, query }) => {
   if (!query.trim()) return <span>{title}</span>;
@@ -31,6 +32,7 @@ export const ConversationList: React.FC = () => {
     loadMoreConversations, isIncognito, toggleIncognito,
   } = useChatStore();
 
+  const { close: closeSidebar, isMobile } = useSidebar();
   const [query, setQuery] = useState('');
   const sentinelRef = useRef<HTMLDivElement>(null);
 
@@ -59,6 +61,7 @@ export const ConversationList: React.FC = () => {
   const handleSelectConversation = async (conversation: Conversation) => {
     if (currentConversation?.id === conversation.id) return;
     setCurrentConversation(conversation);
+    if (isMobile) closeSidebar();
     try { await fetchMessages(conversation.id); }
     catch { toast.error('Failed to load messages'); }
   };

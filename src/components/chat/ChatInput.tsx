@@ -48,38 +48,35 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   return (
     <form onSubmit={handleSubmit} className="border-t border-gray-200 bg-white p-4">
       <div className="max-w-4xl mx-auto">
-        <div className="flex items-end space-x-2">
+        {/* Single unified container — border on wrapper, icons inside */}
+        <div className="flex items-end border border-gray-300 rounded-lg bg-white focus-within:ring-2 focus-within:ring-primary-500 focus-within:border-transparent transition-all">
           <button
             type="button"
             onClick={onOpenDocuments}
-            className="flex-shrink-0 p-2 text-gray-500 hover:text-gray-700 hover:bg-gray-100 rounded-lg transition-colors"
+            className="flex-shrink-0 p-3 text-gray-400 hover:text-gray-600 transition-colors"
             title="Manage documents"
           >
             <Paperclip className="w-5 h-5" />
           </button>
 
-          {/* Message Input */}
-          <div className="flex-1 relative">
-            <textarea
-              ref={textareaRef}
-              value={message}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder="Type your message... (Shift+Enter for new line)"
-              disabled={disabled}
-              rows={1}
-              autoFocus
-              className="w-full px-4 py-3 pr-12 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none resize-none transition-all disabled:bg-gray-50 disabled:text-gray-500"
-              style={{ minHeight: '48px', maxHeight: '200px' }}
-            />
-          </div>
+          <textarea
+            ref={textareaRef}
+            value={message}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Type your message... (Shift+Enter for new line)"
+            disabled={disabled}
+            rows={1}
+            autoFocus
+            className="flex-1 py-3 bg-transparent outline-none resize-none disabled:text-gray-400 placeholder-gray-400 text-gray-900"
+            style={{ minHeight: '48px', maxHeight: '200px' }}
+          />
 
-          {/* Send/Stop Button */}
           {isStreaming ? (
             <button
               type="button"
               onClick={onStopStreaming}
-              className="flex-shrink-0 p-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+              className="flex-shrink-0 p-3 text-red-500 hover:text-red-600 transition-colors"
               title="Stop generating"
             >
               <StopCircle className="w-5 h-5" />
@@ -88,7 +85,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             <button
               type="submit"
               disabled={!message.trim() || disabled}
-              className="flex-shrink-0 p-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex-shrink-0 p-3 text-primary-600 hover:text-primary-700 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
               title="Send message"
             >
               <Send className="w-5 h-5" />
@@ -96,7 +93,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           )}
         </div>
 
-        {/* Helper Text */}
         <div className="mt-2 text-xs text-gray-500 text-center">
           Press Enter to send, Shift+Enter for new line
         </div>

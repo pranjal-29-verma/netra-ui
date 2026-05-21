@@ -27,6 +27,7 @@ export const ConversationList: React.FC = () => {
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {
+    if (currentConversation?.id === conversation.id) return;
     setCurrentConversation(conversation);
     try {
       await fetchMessages(conversation.id);

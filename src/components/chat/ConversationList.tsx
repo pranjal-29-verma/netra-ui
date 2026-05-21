@@ -1,17 +1,55 @@
-import React from 'react';
-import { Plus, MessageSquare, Trash2, EyeOff } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Plus, MessageSquare, Trash2, EyeOff, Search, X, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { Conversation } from '../../types';
 import { useChatStore } from '../../store/chatStore';
 import { TokenUsageBar } from './TokenUsageBar';
 import { ConversationSkeleton } from './ConversationSkeleton';
 
+const HighlightedTitle: React.FC<{ title: string; query: string }> = ({ title, query }) => {
+  if (!query.trim()) return <span>{title}</span>;
+
+  const idx = title.toLowerCase().indexOf(query.toLowerCase());
+  if (idx === -1) return <span>{title}</span>;
+
+  return (
+    <span>
+      {title.slice(0, idx)}
+      <mark className="bg-yellow-200 dark:bg-yellow-700/60 text-inherit rounded-sm px-0.5">
+        {title.slice(idx, idx + query.length)}
+      </mark>
+      {title.slice(idx + query.length)}
+    </span>
+  );
+};
+
 export const ConversationList: React.FC = () => {
   const {
     conversations, currentConversation, setCurrentConversation,
     createConversation, deleteConversation, fetchMessages,
-    isLoading, isLoadingConversations, isIncognito, toggleIncognito,
+    isLoading, isLoadingConversations, isLoadingMore, hasMoreConversations,
+    loadMoreConversations, isIncognito, toggleIncognito,
   } = useChatStore();
+
+  const [query, setQuery] = useState('');
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  // IntersectionObserver — triggers loadMore when sentinel scrolls into view
+  useEffect(() => {
+    if (!sentinelRef.current) return;
+    const observer = new IntersectionObserver(
+      (entries) => { if (entries[0].isIntersecting) loadMoreConversations(); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinelRef.current);
+    return () => observer.disconnect();
+  }, [loadMoreConversations]);
+
+  const filteredConversations = query.trim()
+    ? conversations.filter((c) =>
+        c.title.toLowerCase().includes(query.toLowerCase()),
+      )
+    : conversations;
 
   const handleNewChat = async () => {
     try { await createConversation(); }
@@ -53,7 +91,7 @@ export const ConversationList: React.FC = () => {
 
       {/* New Chat Button */}
       {!isIncognito && (
-        <div className="p-4">
+        <div className="p-4 pb-2">
           <button
             onClick={handleNewChat}
             disabled={isLoading}
@@ -62,6 +100,27 @@ export const ConversationList: React.FC = () => {
             <Plus className="w-5 h-5 mr-2" />
             New Chat
           </button>
+        </div>
+      )}
+
+      {/* Search Input */}
+      {!isIncognito && !isLoadingConversations && conversations.length > 0 && (
+        <div className="px-4 pb-2">
+          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-gray-100 dark:bg-gray-700 border border-transparent focus-within:border-primary-400 focus-within:bg-white dark:focus-within:bg-gray-800 transition-colors">
+            <Search className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search conversations..."
+              className="flex-1 text-xs bg-transparent outline-none text-gray-700 dark:text-gray-200 placeholder-gray-400 dark:placeholder-gray-500"
+            />
+            {query && (
+              <button onClick={() => setQuery('')} className="flex-shrink-0 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors">
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
         </div>
       )}
 
@@ -77,9 +136,15 @@ export const ConversationList: React.FC = () => {
               {isIncognito ? 'Type a message to start' : 'Start a new chat to begin'}
             </p>
           </div>
+        ) : filteredConversations.length === 0 ? (
+          <div className="flex flex-col items-center justify-center h-32 text-center px-4">
+            <Search className="w-8 h-8 text-gray-300 dark:text-gray-600 mb-2" />
+            <p className="text-sm text-gray-500 dark:text-gray-400">No results for</p>
+            <p className="text-xs font-medium text-gray-600 dark:text-gray-300 mt-0.5 truncate max-w-full px-2">"{query}"</p>
+          </div>
         ) : (
           <div className="space-y-1">
-            {conversations.map((conversation) => (
+            {filteredConversations.map((conversation) => (
               <div
                 key={conversation.id}
                 onClick={() => handleSelectConversation(conversation)}
@@ -101,7 +166,7 @@ export const ConversationList: React.FC = () => {
                       ? 'text-primary-900 dark:text-primary-100'
                       : 'text-gray-900 dark:text-gray-100'
                   }`}>
-                    {conversation.title}
+                    <HighlightedTitle title={conversation.title} query={query} />
                   </p>
                   <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                     {conversation.is_incognito ? 'Not saved' : formatDate(conversation.updated_at)}
@@ -115,6 +180,15 @@ export const ConversationList: React.FC = () => {
                 </button>
               </div>
             ))}
+
+            {/* Sentinel for IntersectionObserver — only shown when not searching */}
+            {!query && (
+              <div ref={sentinelRef} className="py-2 flex justify-center">
+                {isLoadingMore && (
+                  <Loader2 className="w-4 h-4 text-gray-400 animate-spin" />
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

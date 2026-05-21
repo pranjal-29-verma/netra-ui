@@ -30,6 +30,9 @@ export const useChatStore = create<ChatState>((set, get) => ({
   isLoading: false,
   isLoadingMessages: false,
   isLoadingConversations: false,
+  isLoadingMore: false,
+  hasMoreConversations: true,
+  conversationOffset: 0,
   isStreaming: false,
   isIncognito: false,
 
@@ -64,14 +67,36 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   fetchConversations: async () => {
-    set({ isLoadingConversations: true });
+    const PAGE_SIZE = 20;
+    set({ isLoadingConversations: true, conversationOffset: 0, hasMoreConversations: true });
     try {
-      const conversations = await chatService.getConversations();
-      const { conversations: current } = get();
-      const incognito = current.filter((c) => c.is_incognito);
-      set({ conversations: [...incognito, ...conversations] });
+      const conversations = await chatService.getConversations(PAGE_SIZE, 0);
+      const incognito = get().conversations.filter((c) => c.is_incognito);
+      set({
+        conversations: [...incognito, ...conversations],
+        conversationOffset: conversations.length,
+        hasMoreConversations: conversations.length === PAGE_SIZE,
+      });
     } finally {
       set({ isLoadingConversations: false });
+    }
+  },
+
+  loadMoreConversations: async () => {
+    const PAGE_SIZE = 20;
+    const { isLoadingMore, hasMoreConversations, conversationOffset } = get();
+    if (isLoadingMore || !hasMoreConversations) return;
+
+    set({ isLoadingMore: true });
+    try {
+      const more = await chatService.getConversations(PAGE_SIZE, conversationOffset);
+      set((state) => ({
+        conversations: [...state.conversations, ...more],
+        conversationOffset: conversationOffset + more.length,
+        hasMoreConversations: more.length === PAGE_SIZE,
+      }));
+    } finally {
+      set({ isLoadingMore: false });
     }
   },
 

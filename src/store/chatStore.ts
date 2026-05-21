@@ -29,6 +29,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   messages: [],
   isLoading: false,
   isLoadingMessages: false,
+  isLoadingConversations: false,
   isStreaming: false,
   isIncognito: false,
 
@@ -63,11 +64,15 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   fetchConversations: async () => {
-    const conversations = await chatService.getConversations();
-    // Preserve any in-memory incognito conversations already in state
-    const { conversations: current } = get();
-    const incognito = current.filter((c) => c.is_incognito);
-    set({ conversations: [...incognito, ...conversations] });
+    set({ isLoadingConversations: true });
+    try {
+      const conversations = await chatService.getConversations();
+      const { conversations: current } = get();
+      const incognito = current.filter((c) => c.is_incognito);
+      set({ conversations: [...incognito, ...conversations] });
+    } finally {
+      set({ isLoadingConversations: false });
+    }
   },
 
   createConversation: async () => {

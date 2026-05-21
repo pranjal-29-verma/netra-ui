@@ -19,7 +19,19 @@ export const TokenUsageBar: React.FC = () => {
     }
   }, [usage]);
 
-  if (!usage) return null;
+  if (!usage) return (
+    <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+      <div className="flex items-center justify-between mb-2">
+        <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="h-3 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+      </div>
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 animate-pulse" />
+      <div className="flex justify-between mt-2">
+        <div className="h-2.5 w-16 rounded bg-gray-100 dark:bg-gray-600 animate-pulse" />
+        <div className="h-2.5 w-16 rounded bg-gray-100 dark:bg-gray-600 animate-pulse" />
+      </div>
+    </div>
+  );
 
   const pct = Math.min(usage.usage_percentage, 100);
   const isWarning = pct >= 80 && pct < 100;

@@ -4,12 +4,13 @@ import toast from 'react-hot-toast';
 import type { Conversation } from '../../types';
 import { useChatStore } from '../../store/chatStore';
 import { TokenUsageBar } from './TokenUsageBar';
+import { ConversationSkeleton } from './ConversationSkeleton';
 
 export const ConversationList: React.FC = () => {
   const {
     conversations, currentConversation, setCurrentConversation,
     createConversation, deleteConversation, fetchMessages,
-    isLoading, isIncognito, toggleIncognito,
+    isLoading, isLoadingConversations, isIncognito, toggleIncognito,
   } = useChatStore();
 
   const handleNewChat = async () => {
@@ -66,7 +67,9 @@ export const ConversationList: React.FC = () => {
 
       {/* Conversations List */}
       <div className="flex-1 overflow-y-auto px-2 py-2">
-        {conversations.length === 0 ? (
+        {isLoadingConversations ? (
+          <ConversationSkeleton />
+        ) : conversations.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-full text-center px-4">
             <MessageSquare className="w-12 h-12 text-gray-300 dark:text-gray-600 mb-3" />
             <p className="text-sm text-gray-500 dark:text-gray-400">No conversations yet</p>

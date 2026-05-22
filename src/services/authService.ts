@@ -6,6 +6,7 @@ interface RegisterData {
   username: string;
   email: string;
   password: string;
+  gender?: string;
 }
 
 interface LoginData {

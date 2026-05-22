@@ -2,7 +2,11 @@ export interface User {
   id: number;
   username: string;
   email: string;
+  display_name?: string;
   displayName?: string;
+  gender?: string;
+  avatar_seed?: string;
+  save_conversations?: boolean;
   googleId?: string;
 }
 
@@ -11,11 +15,12 @@ export interface AuthState {
   token: string | null;
   isAuthenticated: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (username: string, email: string, password: string) => Promise<void>;
+  register: (username: string, email: string, password: string, gender?: string) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => void;
   setUser: (user: User, token: string) => void;
   setToken: (token: string) => void;
+  updateUser: (user: User) => void;
 }
 
 export interface LoginCredentials {
@@ -28,6 +33,7 @@ export interface RegisterCredentials {
   email: string;
   password: string;
   confirmPassword: string;
+  gender: string;
 }
 
 // Document types

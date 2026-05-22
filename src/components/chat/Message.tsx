@@ -3,6 +3,8 @@ import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { User, Bot, Copy, Check, FileText, Globe } from 'lucide-react';
 import type { Message as MessageType, MessageSource } from '../../types';
+import { useAuthStore } from '../../store/authStore';
+import { avatarUrl } from '../../constants/avatars';
 
 interface MessageProps {
   message: MessageType;
@@ -10,6 +12,7 @@ interface MessageProps {
 
 export const Message: React.FC<MessageProps> = ({ message }) => {
   const [copied, setCopied] = React.useState(false);
+  const user = useAuthStore((state) => state.user);
 
   const handleCopy = () => {
     navigator.clipboard.writeText(message.content);
@@ -34,16 +37,19 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
 
         {/* Avatar */}
         <div className="flex-shrink-0 mt-0.5">
-          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-            isUser
-              ? 'bg-primary-600'
-              : 'bg-gray-200 dark:bg-gray-700'
-          }`}>
-            {isUser
-              ? <User className="w-4 h-4 text-white" />
-              : <Bot className="w-4 h-4 text-gray-700 dark:text-gray-200" />
-            }
-          </div>
+          {isUser ? (
+            <div className="w-8 h-8 rounded-full overflow-hidden bg-primary-600 flex items-center justify-center">
+              {user?.avatar_seed ? (
+                <img src={avatarUrl(user.avatar_seed, user.gender)} alt="avatar" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-4 h-4 text-white" />
+              )}
+            </div>
+          ) : (
+            <div className="w-8 h-8 rounded-full flex items-center justify-center bg-gray-200 dark:bg-gray-700">
+              <Bot className="w-4 h-4 text-gray-700 dark:text-gray-200" />
+            </div>
+          )}
         </div>
 
         {/* Bubble + metadata */}

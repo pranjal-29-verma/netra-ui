@@ -28,6 +28,31 @@ export interface AdminActivity {
   recent_conversations: RecentConversation[];
 }
 
+export interface AdminUser {
+  id: number;
+  username: string;
+  email: string;
+  display_name?: string;
+  gender?: string;
+  avatar_seed?: string;
+  is_active: boolean;
+  created_at: string;
+  roles: string[];
+  conversations: number;
+  tokens_used_today: number;
+  total_tokens_used: number;
+  documents?: number;
+  messages?: number;
+}
+
+export interface UsersPage {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  users: AdminUser[];
+}
+
 const adminService = {
   getStats: async (): Promise<AdminStats> => {
     const { data } = await api.get(API_ENDPOINTS.ADMIN_STATS);
@@ -37,6 +62,27 @@ const adminService = {
   getActivity: async (): Promise<AdminActivity> => {
     const { data } = await api.get(API_ENDPOINTS.ADMIN_ACTIVITY);
     return data;
+  },
+
+  getUsers: async (page = 1, limit = 20, search = ''): Promise<UsersPage> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_USERS, {
+      params: { page, limit, search },
+    });
+    return data;
+  },
+
+  getUser: async (id: number): Promise<AdminUser> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_USER(id));
+    return data;
+  },
+
+  toggleBan: async (id: number): Promise<{ id: number; is_active: boolean }> => {
+    const { data } = await api.patch(API_ENDPOINTS.ADMIN_USER_BAN(id));
+    return data;
+  },
+
+  deleteUser: async (id: number): Promise<void> => {
+    await api.delete(API_ENDPOINTS.ADMIN_USER(id));
   },
 };
 

@@ -137,31 +137,49 @@ netra-ui/
 
 ---
 
-## Pending Enhancements & Bugs
+## Enhancements & Bugs (E-Series)
 
 | # | Item | Type | Status |
 |---|------|------|--------|
-| E1 | User message bubble + avatar CSS mismatch vs AI side | Bug | Pending |
-| E2 | Search conversations / messages | Enhancement | Pending |
-| E3 | Profile settings in Settings modal | Enhancement | Flow TBD |
-| E4 | Payment gateway integration | Enhancement | Flow TBD |
-| E5 | Mobile responsive collapsible sidebar | Enhancement | Pending |
-| E6a | Skeleton loader — conversation list | Enhancement | Pending |
-| E6b | Skeleton loader — messages (no flash of empty state) | Bug fix | Pending |
-| E6c | Skeleton loader — token usage bar | Enhancement | Pending |
-| E7 | Claude-style settings page per user (verify with user first) | Enhancement | Flow TBD |
+| E1 | User message bubble + avatar CSS mismatch vs AI side | Bug | ✅ Done |
+| E2 | Search conversations / messages | Enhancement | ✅ Done |
+| E3 | Profile settings — covered by E7 | Enhancement | ✅ Done (via E7) |
+| E4 | Payment gateway integration | Enhancement | ⏳ Deferred (post Phase 5) |
+| E5 | Mobile responsive collapsible sidebar | Enhancement | ✅ Done |
+| E6a | Skeleton loader — conversation list | Enhancement | ✅ Done |
+| E6b | Skeleton loader — messages (no flash of empty state) | Bug fix | ✅ Done |
+| E6c | Skeleton loader — token usage bar | Enhancement | ✅ Done |
+| E7 | Dedicated settings page: profile, avatar, appearance, privacy | Enhancement | ✅ Done |
 
 ---
 
-## Phase 5: Admin Panel (Upcoming)
+## Phase 5: Admin Panel
 
-Deliberately deferred — requires encrypted key storage, admin auth, and 6–8 new components:
+Full RBAC (Role-Based Access Control) foundation + admin UI.
 
-- Admin role + protected admin routes
-- Model & API key config from UI (stored encrypted in DB)
-- Per-user token quota management by admin
-- All users share the admin-configured model
-- Admin dashboard: user list, usage stats
+### RBAC Data Model
+```
+roles              → id, name, description
+permissions        → id, name (e.g. "users:delete", "analytics:view")
+role_permissions   → role_id, permission_id
+user_roles         → user_id, role_id
+```
+- First admin assigned manually in DB
+- Future roles created via UI (P5.5)
+
+### Iterations
+
+| # | Item | Status |
+|---|------|--------|
+| P5.1 | RBAC foundation — tables, migration, backend permission guard, seed data | 🔄 In Progress |
+| P5.2 | Admin layout & auth — `/admin` route, sidebar nav, permission-aware menu | ⏳ Pending |
+| P5.3 | Overview dashboard — stats cards, recent activity | ⏳ Pending |
+| P5.4 | User management — list, search, ban/unban, delete | ⏳ Pending |
+| P5.5 | Role assignment UI — assign/revoke roles to users, view role permissions | ⏳ Pending |
+| P5.6 | Content oversight — conversation metadata (no message content, privacy), documents | ⏳ Pending |
+| P5.7 | Analytics — token usage charts, active users, top consumers (Recharts) | ⏳ Pending |
+
+> **Privacy note:** Admins see conversation metadata only (title, date, count, tokens). Message content is never exposed to admins.
 
 ---
 
@@ -204,9 +222,9 @@ DEFAULT_DAILY_TOKEN_QUOTA=100000
 | Vector DB (pgvector + Voyage AI) | ✅ Done |
 | LLM Integration / RAG / Streaming | ✅ Done |
 | Dark Mode + Settings + Refresh Token | ✅ Done |
-| Enhancements E1–E7 | 🔜 In Progress |
-| Phase 5: Admin Panel | ⏳ Pending |
+| Enhancements E1–E7 | ✅ Done |
+| Phase 5: Admin Panel | 🔄 In Progress (P5.1) |
 
 ---
 
-**Last Updated:** Iteration 16 complete — starting enhancements E1–E7
+**Last Updated:** E1–E7 complete — Phase 5 Admin Panel started (P5.1 RBAC foundation)

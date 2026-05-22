@@ -1,34 +1,72 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { Search, Ban, Trash2, ChevronLeft, ChevronRight, X, ShieldOff, Shield } from 'lucide-react';
+import { Search, Ban, Trash2, ChevronLeft, ChevronRight, X, ShieldOff, Shield, ShieldCheck } from 'lucide-react';
 import toast from 'react-hot-toast';
-import adminService, { type AdminUser, type UsersPage } from '../../services/adminService';
+import adminService, { type AdminUser, type UsersPage, type AdminRole } from '../../services/adminService';
 import { avatarUrl } from '../../constants/avatars';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
 
-function UserDetailModal({ user, onClose, onBan, onDelete }: {
+function UserDetailModal({ user, onClose, onBan, onDelete, onRolesUpdated }: {
   user: AdminUser;
   onClose: () => void;
   onBan: (id: number) => void;
   onDelete: (id: number) => void;
+  onRolesUpdated: (id: number, roles: string[]) => void;
 }) {
   const { user: me } = useAuthStore();
-  const canBan = hasPermission(me, 'users:ban');
-  const canDelete = hasPermission(me, 'users:delete');
+  const canBan       = hasPermission(me, 'users:ban');
+  const canDelete    = hasPermission(me, 'users:delete');
+  const canAssign    = hasPermission(me, 'roles:assign');
+
+  const [allRoles, setAllRoles]         = useState<AdminRole[]>([]);
+  const [selectedIds, setSelectedIds]   = useState<Set<number>>(new Set());
+  const [savingRoles, setSavingRoles]   = useState(false);
+  const [rolesLoading, setRolesLoading] = useState(false);
+
+  useEffect(() => {
+    if (!canAssign) return;
+    setRolesLoading(true);
+    adminService.getRoles().then((roles) => {
+      setAllRoles(roles);
+      const currentNames = new Set(user.roles);
+      setSelectedIds(new Set(roles.filter((r) => currentNames.has(r.name)).map((r) => r.id)));
+    }).finally(() => setRolesLoading(false));
+  }, [canAssign, user.roles]);
+
+  const toggleRole = (id: number) => {
+    setSelectedIds((prev) => {
+      const next = new Set(prev);
+      next.has(id) ? next.delete(id) : next.add(id);
+      return next;
+    });
+  };
+
+  const saveRoles = async () => {
+    setSavingRoles(true);
+    try {
+      const res = await adminService.assignRoles(user.id, [...selectedIds]);
+      toast.success('Roles updated');
+      onRolesUpdated(user.id, res.roles);
+    } catch {
+      toast.error('Failed to update roles');
+    } finally {
+      setSavingRoles(false);
+    }
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md">
+      <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl w-full max-w-md max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700">
+        <div className="flex items-center justify-between p-5 border-b border-gray-100 dark:border-gray-700 flex-shrink-0">
           <h3 className="font-semibold text-gray-900 dark:text-gray-100">User Detail</h3>
           <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">
             <X className="w-4 h-4 text-gray-500" />
           </button>
         </div>
 
-        {/* Body */}
-        <div className="p-5 space-y-4">
+        {/* Scrollable body */}
+        <div className="p-5 space-y-4 overflow-y-auto flex-1">
           {/* Avatar + name */}
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-full overflow-hidden flex-shrink-0 bg-primary-100 dark:bg-primary-900">
@@ -57,11 +95,11 @@ function UserDetailModal({ user, onClose, onBan, onDelete }: {
           <div className="grid grid-cols-2 gap-3">
             {[
               { label: 'Conversations', value: user.conversations },
-              { label: 'Messages', value: user.messages ?? '—' },
-              { label: 'Documents', value: user.documents ?? '—' },
-              { label: 'Tokens (today)', value: (user.tokens_used_today ?? 0).toLocaleString() },
-              { label: 'Tokens (total)', value: (user.total_tokens_used ?? 0).toLocaleString() },
-              { label: 'Joined', value: new Date(user.created_at).toLocaleDateString() },
+              { label: 'Messages',      value: user.messages ?? '—' },
+              { label: 'Documents',     value: user.documents ?? '—' },
+              { label: 'Tokens (today)',value: (user.tokens_used_today ?? 0).toLocaleString() },
+              { label: 'Tokens (total)',value: (user.total_tokens_used ?? 0).toLocaleString() },
+              { label: 'Joined',        value: new Date(user.created_at).toLocaleDateString() },
             ].map((s) => (
               <div key={s.label} className="bg-gray-50 dark:bg-gray-700/50 rounded-lg px-3 py-2">
                 <p className="text-xs text-gray-500 dark:text-gray-400">{s.label}</p>
@@ -70,22 +108,58 @@ function UserDetailModal({ user, onClose, onBan, onDelete }: {
             ))}
           </div>
 
-          {/* Roles */}
-          <div className="flex flex-wrap gap-1.5">
-            {user.roles.length === 0 ? (
-              <span className="text-xs px-2 py-0.5 bg-violet-50 dark:bg-violet-900/20 text-violet-600 dark:text-violet-400 rounded-full border border-violet-200 dark:border-violet-800 italic">
-                just vibing
-              </span>
-            ) : user.roles.map((r) => (
-              <span key={r} className="text-xs px-2 py-0.5 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300 rounded-full border border-primary-200 dark:border-primary-800">
-                {r}
-              </span>
-            ))}
-          </div>
+          {/* Manage Roles */}
+          {canAssign && (
+            <div>
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Manage Roles</p>
+              </div>
+              {rolesLoading ? (
+                <div className="space-y-2">
+                  {[1, 2].map((i) => <div key={i} className="h-10 bg-gray-100 dark:bg-gray-700 rounded-lg animate-pulse" />)}
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {allRoles.map((role) => (
+                    <label
+                      key={role.id}
+                      className={`flex items-center gap-3 p-3 rounded-lg border-2 cursor-pointer transition-colors ${
+                        selectedIds.has(role.id)
+                          ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20'
+                          : 'border-gray-200 dark:border-gray-600 hover:border-gray-300 dark:hover:border-gray-500'
+                      }`}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(role.id)}
+                        onChange={() => toggleRole(role.id)}
+                        className="w-4 h-4 rounded text-primary-600 focus:ring-primary-500"
+                      />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{role.name}</p>
+                        {role.description && (
+                          <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{role.description}</p>
+                        )}
+                      </div>
+                      <span className="text-xs text-gray-400">{role.permissions.length} perms</span>
+                    </label>
+                  ))}
+                </div>
+              )}
+              <button
+                onClick={saveRoles}
+                disabled={savingRoles}
+                className="mt-3 w-full py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors"
+              >
+                {savingRoles ? 'Saving…' : 'Save Roles'}
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Actions */}
-        <div className="flex gap-2 p-5 pt-0">
+        <div className="flex gap-2 p-5 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
           {canBan && (
             <button
               onClick={() => { onBan(user.id); onClose(); }}
@@ -367,6 +441,12 @@ export const AdminUsers: React.FC = () => {
           onClose={() => setSelected(null)}
           onBan={handleBan}
           onDelete={handleDelete}
+          onRolesUpdated={(id, roles) => {
+            setData((prev) =>
+              prev ? { ...prev, users: prev.users.map((u) => u.id === id ? { ...u, roles } : u) } : prev,
+            );
+            setSelected((prev) => prev ? { ...prev, roles } : prev);
+          }}
         />
       )}
     </div>

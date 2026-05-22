@@ -84,6 +84,39 @@ const adminService = {
   deleteUser: async (id: number): Promise<void> => {
     await api.delete(API_ENDPOINTS.ADMIN_USER(id));
   },
+
+  getRoles: async (): Promise<AdminRole[]> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_ROLES);
+    return data;
+  },
+
+  getPermissions: async (): Promise<AdminPermission[]> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_PERMISSIONS);
+    return data;
+  },
+
+  createRole: async (payload: { name: string; description: string; permission_ids: number[] }): Promise<AdminRole> => {
+    const { data } = await api.post(API_ENDPOINTS.ADMIN_ROLES, payload);
+    return data;
+  },
+
+  assignRoles: async (userId: number, roleIds: number[]): Promise<{ id: number; roles: string[] }> => {
+    const { data } = await api.put(API_ENDPOINTS.ADMIN_USER_ROLES(userId), { role_ids: roleIds });
+    return data;
+  },
 };
+
+export interface AdminPermission {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface AdminRole {
+  id: number;
+  name: string;
+  description?: string;
+  permissions: AdminPermission[];
+}
 
 export default adminService;

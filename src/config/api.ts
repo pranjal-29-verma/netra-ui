@@ -28,6 +28,9 @@ export const API_ENDPOINTS = {
   ADMIN_USERS: '/api/admin/users',
   ADMIN_USER: (id: number) => `/api/admin/users/${id}`,
   ADMIN_USER_BAN: (id: number) => `/api/admin/users/${id}/ban`,
+  ADMIN_USER_ROLES: (id: number) => `/api/admin/users/${id}/roles`,
+  ADMIN_ROLES: '/api/admin/roles',
+  ADMIN_PERMISSIONS: '/api/admin/permissions',
 
   // Document endpoints
   DOCUMENTS: '/api/documents',

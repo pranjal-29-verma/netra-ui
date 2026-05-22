@@ -4,6 +4,13 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
+import { AdminDashboard } from './pages/admin/AdminDashboard';
+import { AdminUsers } from './pages/admin/AdminUsers';
+import { AdminRoles } from './pages/admin/AdminRoles';
+import { AdminContent } from './pages/admin/AdminContent';
+import { AdminAnalytics } from './pages/admin/AdminAnalytics';
+import { AdminLayout } from './components/admin/AdminLayout';
+import { AdminRoute } from './components/admin/AdminRoute';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore, applyTheme } from './store/themeStore';
 
@@ -84,6 +91,24 @@ function App() {
             </ProtectedRoute>
           }
         />
+        {/* Admin routes */}
+        <Route
+          path="/admin/*"
+          element={
+            <AdminRoute>
+              <AdminLayout>
+                <Routes>
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="users" element={<AdminUsers />} />
+                  <Route path="roles" element={<AdminRoles />} />
+                  <Route path="content" element={<AdminContent />} />
+                  <Route path="analytics" element={<AdminAnalytics />} />
+                </Routes>
+              </AdminLayout>
+            </AdminRoute>
+          }
+        />
+
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

@@ -1,3 +1,16 @@
+export interface Permission {
+  id: number;
+  name: string;
+  description?: string;
+}
+
+export interface Role {
+  id: number;
+  name: string;
+  description?: string;
+  permissions: Permission[];
+}
+
 export interface User {
   id: number;
   username: string;
@@ -8,6 +21,17 @@ export interface User {
   avatar_seed?: string;
   save_conversations?: boolean;
   googleId?: string;
+  roles?: Role[];
+}
+
+export function hasPermission(user: User | null, permission: string): boolean {
+  if (!user?.roles) return false;
+  return user.roles.some((role) => role.permissions.some((p) => p.name === permission));
+}
+
+export function isAdminUser(user: User | null): boolean {
+  if (!user?.roles) return false;
+  return user.roles.some((role) => role.name === 'admin' || role.name === 'moderator');
 }
 
 export interface AuthState {

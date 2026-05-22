@@ -21,6 +21,9 @@ export const API_ENDPOINTS = {
   USER_ME: '/api/users/me',
   USER_PASSWORD: '/api/users/me/password',
 
+  // Admin endpoints
+  ADMIN_ME: '/api/admin/me',
+
   // Document endpoints
   DOCUMENTS: '/api/documents',
   DOCUMENT_UPLOAD: '/api/documents/upload',

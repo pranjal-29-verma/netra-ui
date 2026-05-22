@@ -2,7 +2,7 @@ import React, { useState, useEffect, createContext, useContext } from 'react';
 import { MessageSquare, Menu, X, LogOut, Settings } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
-import { SettingsModal } from './SettingsModal';
+import { avatarUrl } from '../../constants/avatars';
 
 // Context so ConversationList can close the sidebar on mobile after selecting a chat
 interface SidebarCtx {
@@ -22,7 +22,6 @@ const MOBILE_BREAKPOINT = 1024; // lg
 export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= MOBILE_BREAKPOINT);
-  const [settingsOpen, setSettingsOpen] = useState(false);
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
 
@@ -95,10 +94,14 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
           <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700">
             {/* User info */}
             <div className="flex items-center space-x-2 mb-3">
-              <div className="w-8 h-8 bg-primary-100 dark:bg-primary-900 rounded-full flex items-center justify-center flex-shrink-0">
-                <span className="text-sm font-medium text-primary-700 dark:text-primary-300">
-                  {user?.username?.charAt(0).toUpperCase()}
-                </span>
+              <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-primary-100 dark:bg-primary-900">
+                {user?.avatar_seed ? (
+                  <img src={avatarUrl(user.avatar_seed, user.gender)} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-sm font-medium text-primary-700 dark:text-primary-300">
+                    {user?.username?.charAt(0).toUpperCase()}
+                  </span>
+                )}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -111,7 +114,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
             {/* Settings + Logout row */}
             <div className="flex gap-2">
               <button
-                onClick={() => setSettingsOpen(true)}
+                onClick={() => navigate('/settings')}
                 className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
               >
                 <Settings className="w-4 h-4" />
@@ -127,8 +130,6 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
             </div>
           </div>
         </aside>
-
-        {settingsOpen && <SettingsModal onClose={() => setSettingsOpen(false)} />}
 
         {/* Main Content */}
         <div className="flex-1 flex flex-col overflow-hidden min-w-0">

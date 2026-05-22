@@ -17,6 +17,10 @@ export const API_ENDPOINTS = {
   // Token endpoints
   TOKEN_USAGE: '/api/tokens/usage',
 
+  // User endpoints
+  USER_ME: '/api/users/me',
+  USER_PASSWORD: '/api/users/me/password',
+
   // Document endpoints
   DOCUMENTS: '/api/documents',
   DOCUMENT_UPLOAD: '/api/documents/upload',

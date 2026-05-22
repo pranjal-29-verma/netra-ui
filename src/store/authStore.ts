@@ -45,13 +45,16 @@ export const useAuthStore = create<AuthState>()(
         }
       },
 
-      register: async (username: string, email: string, password: string) => {
+      register: async (username: string, email: string, password: string, gender?: string) => {
         try {
-          await authService.register({ username, email, password });
-          // Don't auto-login after registration, redirect to login page
+          await authService.register({ username, email, password, gender: gender || 'other' });
         } catch (error: any) {
           throw new Error(error.response?.data?.detail || 'Registration failed');
         }
+      },
+
+      updateUser: (user: User) => {
+        set({ user });
       },
 
       logout: () => {

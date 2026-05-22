@@ -23,6 +23,8 @@ export const API_ENDPOINTS = {
 
   // Admin endpoints
   ADMIN_ME: '/api/admin/me',
+  ADMIN_STATS: '/api/admin/stats',
+  ADMIN_ACTIVITY: '/api/admin/activity',
 
   // Document endpoints
   DOCUMENTS: '/api/documents',

@@ -3,7 +3,6 @@ import { Plus, MessageSquare, Trash2, EyeOff, Search, X, Loader2 } from 'lucide-
 import toast from 'react-hot-toast';
 import type { Conversation } from '../../types';
 import { useChatStore } from '../../store/chatStore';
-import { TokenUsageBar } from './TokenUsageBar';
 import { ConversationSkeleton } from './ConversationSkeleton';
 import { useSidebar } from './ChatLayout';
 
@@ -29,7 +28,7 @@ export const ConversationList: React.FC = () => {
     conversations, currentConversation, setCurrentConversation,
     createConversation, deleteConversation, fetchMessages,
     isLoading, isLoadingConversations, isLoadingMore, hasMoreConversations,
-    loadMoreConversations, isIncognito, toggleIncognito,
+    loadMoreConversations, isIncognito,
   } = useChatStore();
 
   const { close: closeSidebar, isMobile } = useSidebar();
@@ -196,25 +195,6 @@ export const ConversationList: React.FC = () => {
         )}
       </div>
 
-      {/* Token Usage Bar */}
-      <TokenUsageBar />
-
-      {/* Incognito Toggle */}
-      <div className="p-4 border-t border-gray-200 dark:border-gray-700">
-        <label className="flex items-center justify-between cursor-pointer">
-          <div className="flex items-center gap-2">
-            <EyeOff className={`w-4 h-4 ${isIncognito ? 'text-purple-500' : 'text-gray-400 dark:text-gray-500'}`} />
-            <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Incognito Mode</span>
-          </div>
-          <div className="relative">
-            <input type="checkbox" className="sr-only peer" checked={isIncognito} onChange={toggleIncognito} />
-            <div className="w-11 h-6 bg-gray-200 dark:bg-gray-600 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600" />
-          </div>
-        </label>
-        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
-          {isIncognito ? 'Chats are session-only and never saved' : "Chats won't be saved in history"}
-        </p>
-      </div>
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, EyeOff } from 'lucide-react';
+import { MessageSquare, EyeOff, Sparkles } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Message } from './Message';
 import { MessageSkeleton } from './MessageSkeleton';
@@ -7,10 +7,18 @@ import { ChatInput } from './ChatInput';
 import { DocumentPanel } from './DocumentPanel';
 import { useChatStore } from '../../store/chatStore';
 import { useTokenStore } from '../../store/tokenStore';
+import { useAuthStore } from '../../store/authStore';
+
+function getGreeting(name: string): string {
+  const hour = new Date().getHours();
+  const time = hour < 12 ? 'morning' : hour < 17 ? 'afternoon' : 'evening';
+  return `Good ${time}, ${name}!`;
+}
 
 export const ChatArea: React.FC = () => {
   const { currentConversation, messages, isLoading, isLoadingMessages, isStreaming, sendMessage, stopStreaming, createConversation, fetchMessages, isIncognito } = useChatStore();
   const { usage, fetchUsage } = useTokenStore();
+  const { user } = useAuthStore();
   const [docPanelOpen, setDocPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -84,8 +92,16 @@ export const ChatArea: React.FC = () => {
             ) : isLoadingMessages ? (
               <MessageSkeleton />
             ) : messages.length === 0 ? (
-              <div className="text-center py-12">
-                <p className="text-gray-500 dark:text-gray-400">No messages yet. Start the conversation!</p>
+              <div className="flex flex-col items-center justify-center min-h-80 text-center px-4 py-12">
+                <div className="w-14 h-14 rounded-2xl bg-primary-100 dark:bg-primary-900/30 flex items-center justify-center mb-5">
+                  <Sparkles className="w-7 h-7 text-primary-600 dark:text-primary-400" />
+                </div>
+                <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-2">
+                  {getGreeting(user?.display_name || user?.username || 'there')}
+                </h2>
+                <p className="text-gray-500 dark:text-gray-400 text-sm max-w-sm">
+                  What's on your mind? Ask me anything or upload a document to get started.
+                </p>
               </div>
             ) : (
               messages.map((message) => <Message key={message.id} message={message} />)

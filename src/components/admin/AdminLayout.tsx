@@ -10,6 +10,7 @@ import {
   Menu,
   X,
   MessageSquare,
+  Settings,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
@@ -158,7 +159,15 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           >
             <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Admin Panel</h1>
+          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex-1">Admin Panel</h1>
+          <button
+            onClick={() => navigate('/settings')}
+            className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+            aria-label="Settings"
+            title="Settings"
+          >
+            <Settings className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+          </button>
         </header>
 
         {/* Page content */}

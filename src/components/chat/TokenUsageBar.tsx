@@ -20,16 +20,12 @@ export const TokenUsageBar: React.FC = () => {
   }, [usage]);
 
   if (!usage) return (
-    <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-      <div className="flex items-center justify-between mb-2">
-        <div className="h-3 w-24 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
-        <div className="h-3 w-12 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+    <div className="px-3 pt-2 pb-1">
+      <div className="flex items-center justify-between mb-1">
+        <div className="h-4 w-20 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
+        <div className="h-4 w-16 rounded bg-gray-200 dark:bg-gray-700 animate-pulse" />
       </div>
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 animate-pulse" />
-      <div className="flex justify-between mt-2">
-        <div className="h-2.5 w-16 rounded bg-gray-100 dark:bg-gray-600 animate-pulse" />
-        <div className="h-2.5 w-16 rounded bg-gray-100 dark:bg-gray-600 animate-pulse" />
-      </div>
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1 animate-pulse" />
     </div>
   );
 
@@ -50,36 +46,27 @@ export const TokenUsageBar: React.FC = () => {
     : 'text-gray-500';
 
   return (
-    <div className="px-4 py-3 border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+    <div className="px-3 pt-2 pb-1">
       <div className="flex items-center justify-between mb-1">
-        <div className="flex items-center gap-1.5">
-          <Zap className="w-3.5 h-3.5 text-gray-400" />
-          <span className="text-xs font-medium text-gray-600 dark:text-gray-400">Daily Tokens</span>
+        <div className="flex items-center gap-1">
+          <Zap className="w-3 h-3 text-gray-400" />
+          <span className="text-xs text-gray-500 dark:text-gray-400">Daily Tokens</span>
         </div>
         <span className={`text-xs font-medium ${textColor}`}>
-          {isExhausted ? 'Quota reached' : `${pct.toFixed(0)}% used`}
+          {isExhausted ? 'Quota reached' : `${usage.tokens_used.toLocaleString()} / ${usage.daily_quota.toLocaleString()}`}
         </span>
       </div>
 
       {/* Progress bar */}
-      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5">
+      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1">
         <div
-          className={`h-1.5 rounded-full transition-all duration-500 ${barColor}`}
+          className={`h-1 rounded-full transition-all duration-500 ${barColor}`}
           style={{ width: `${pct}%` }}
         />
       </div>
 
-      <div className="flex justify-between mt-1">
-        <span className="text-xs text-gray-400 dark:text-gray-500">
-          {usage.tokens_used.toLocaleString()} used
-        </span>
-        <span className="text-xs text-gray-400 dark:text-gray-500">
-          {usage.daily_quota.toLocaleString()} limit
-        </span>
-      </div>
-
       {isExhausted && (
-        <p className="text-xs text-red-500 mt-1.5 font-medium">
+        <p className="text-xs text-red-500 mt-1 font-medium">
           {(() => {
             const nextMidnightUTC = new Date();
             nextMidnightUTC.setUTCHours(24, 0, 0, 0);

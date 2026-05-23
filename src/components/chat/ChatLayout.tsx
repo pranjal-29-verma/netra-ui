@@ -1,8 +1,11 @@
-import React, { useState, useEffect, createContext, useContext } from 'react';
-import { MessageSquare, Menu, X, LogOut, Settings } from 'lucide-react';
+import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
+import { MessageSquare, Menu, X, LogOut, Settings, ShieldCheck, ChevronUp, EyeOff } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { avatarUrl } from '../../constants/avatars';
+import { isAdminUser } from '../../types';
+import { useChatStore } from '../../store/chatStore';
+import { TokenUsageBar } from './TokenUsageBar';
 
 // Context so ConversationList can close the sidebar on mobile after selecting a chat
 interface SidebarCtx {
@@ -22,8 +25,11 @@ const MOBILE_BREAKPOINT = 1024; // lg
 export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => {
   const [isMobile, setIsMobile] = useState(() => window.innerWidth < MOBILE_BREAKPOINT);
   const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= MOBILE_BREAKPOINT);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const { user, logout } = useAuthStore();
+  const { isIncognito, toggleIncognito } = useChatStore();
 
   // Track breakpoint changes
   useEffect(() => {
@@ -36,6 +42,17 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
     };
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
   }, []);
 
   const handleLogout = () => {
@@ -88,12 +105,47 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
           </div>
 
           {/* Sidebar Content */}
-          <div className="flex-1 overflow-y-auto min-h-0">{sidebar}</div>
+          <div className="flex-1 overflow-hidden min-h-0">{sidebar}</div>
 
-          {/* Sidebar Footer */}
-          <div className="flex-shrink-0 p-4 border-t border-gray-200 dark:border-gray-700">
-            {/* User info */}
-            <div className="flex items-center space-x-2 mb-3">
+          {/* Sidebar Footer — token bar + profile dropdown, single border-t */}
+          <div className="flex-shrink-0 border-t border-gray-200 dark:border-gray-700 pt-[0.4rem]" ref={menuRef}>
+            <TokenUsageBar />
+            <div className="px-3 pb-3">
+            {/* Dropdown menu — opens upward */}
+            {menuOpen && (
+              <div className="mb-2 bg-white dark:bg-gray-700 rounded-xl border border-gray-200 dark:border-gray-600 shadow-lg overflow-hidden">
+                {isAdminUser(user) && (
+                  <button
+                    onClick={() => { navigate('/admin'); setMenuOpen(false); }}
+                    className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-primary-600 dark:text-primary-400 hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors"
+                  >
+                    <ShieldCheck className="w-4 h-4" />
+                    Admin Panel
+                  </button>
+                )}
+                <button
+                  onClick={() => { navigate('/settings'); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </button>
+                <div className="border-t border-gray-100 dark:border-gray-600" />
+                <button
+                  onClick={() => { handleLogout(); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+
+            {/* Profile trigger */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="w-full flex items-center gap-3 p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors group"
+            >
               <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 bg-primary-100 dark:bg-primary-900">
                 {user?.avatar_seed ? (
                   <img src={avatarUrl(user.avatar_seed, user.gender)} alt="avatar" className="w-full h-full object-cover" />
@@ -103,30 +155,14 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
                   </span>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-left">
                 <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {user?.displayName || user?.username}
+                  {user?.display_name || user?.username}
                 </p>
                 <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user?.email}</p>
               </div>
-            </div>
-
-            {/* Settings + Logout row */}
-            <div className="flex gap-2">
-              <button
-                onClick={() => navigate('/settings')}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
-              >
-                <Settings className="w-4 h-4" />
-                Settings
-              </button>
-              <button
-                onClick={handleLogout}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-              >
-                <LogOut className="w-4 h-4" />
-                Logout
-              </button>
+              <ChevronUp className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${menuOpen ? 'rotate-0' : 'rotate-180'}`} />
+            </button>
             </div>
           </div>
         </aside>
@@ -137,10 +173,26 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
           <div className="flex-shrink-0 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 p-4 flex items-center gap-3">
             <button
               onClick={() => setSidebarOpen((o) => !o)}
-              className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
+              className="p-1.5 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors flex-shrink-0"
               aria-label="Toggle sidebar"
             >
               <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+            </button>
+
+            <div className="flex-1" />
+
+            {/* Incognito toggle */}
+            <button
+              onClick={toggleIncognito}
+              title={isIncognito ? 'Disable incognito' : 'Enable incognito'}
+              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                isIncognito
+                  ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'
+                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
+              }`}
+            >
+              <EyeOff className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Incognito</span>
             </button>
           </div>
 

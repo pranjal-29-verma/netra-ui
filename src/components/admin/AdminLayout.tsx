@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard,
@@ -10,6 +10,8 @@ import {
   Menu,
   X,
   MessageSquare,
+  Settings,
+  ChevronUp,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
@@ -34,10 +36,33 @@ interface AdminLayoutProps {
   children: React.ReactNode;
 }
 
+const LG = 1024;
+
 export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(() => window.innerWidth >= LG);
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= LG) setSidebarOpen(true);
+      else setSidebarOpen(false);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   const handleLogout = () => {
     logout();
@@ -71,7 +96,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
         <div className="flex flex-col h-full w-64">
 
           {/* Logo */}
-          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+          <div className="flex items-center justify-between py-3 px-4 border-b border-gray-700">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
                 <ShieldCheck className="w-5 h-5 text-white" />
@@ -110,17 +135,41 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
             ))}
           </nav>
 
-          {/* Back to app + user footer */}
-          <div className="flex-shrink-0 p-3 border-t border-gray-700 space-y-2">
-            <button
-              onClick={() => navigate('/dashboard')}
-              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
-            >
-              <MessageSquare className="w-4 h-4" />
-              Back to Chat
-            </button>
+          {/* User footer with dropdown */}
+          <div className="flex-shrink-0 p-3 border-t border-gray-700" ref={menuRef}>
+            {/* Dropdown — opens upward */}
+            {menuOpen && (
+              <div className="mb-2 bg-gray-800 rounded-xl border border-gray-700 shadow-lg overflow-hidden">
+                <button
+                  onClick={() => { navigate('/settings'); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                >
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </button>
+                <button
+                  onClick={() => { navigate('/dashboard'); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-300 hover:bg-gray-700 hover:text-white transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  Back to Chat
+                </button>
+                <div className="border-t border-gray-700" />
+                <button
+                  onClick={() => { handleLogout(); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-red-400 hover:bg-red-900/20 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
 
-            <div className="flex items-center gap-2 px-1">
+            {/* Profile trigger */}
+            <button
+              onClick={() => setMenuOpen((o) => !o)}
+              className="w-full flex items-center gap-2 p-2 rounded-xl hover:bg-gray-800 transition-colors group"
+            >
               <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-primary-800">
                 {user?.avatar_seed ? (
                   <img src={avatarUrl(user.avatar_seed, user.gender)} alt="avatar" className="w-full h-full object-cover" />
@@ -130,18 +179,12 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
                   </span>
                 )}
               </div>
-              <div className="flex-1 min-w-0">
+              <div className="flex-1 min-w-0 text-left">
                 <p className="text-xs font-medium text-white truncate">{user?.display_name || user?.username}</p>
                 <p className="text-xs text-gray-500 truncate">{user?.roles?.map(r => r.name).join(', ')}</p>
               </div>
-              <button
-                onClick={handleLogout}
-                className="p-1.5 text-gray-400 hover:text-red-400 rounded transition-colors"
-                title="Logout"
-              >
-                <LogOut className="w-3.5 h-3.5" />
-              </button>
-            </div>
+              <ChevronUp className={`w-4 h-4 text-gray-400 flex-shrink-0 transition-transform duration-200 ${menuOpen ? 'rotate-0' : 'rotate-180'}`} />
+            </button>
           </div>
 
         </div>
@@ -158,7 +201,7 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
           >
             <Menu className="w-5 h-5 text-gray-600 dark:text-gray-400" />
           </button>
-          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Admin Panel</h1>
+          <h1 className="text-sm font-semibold text-gray-800 dark:text-gray-100 flex-1">Admin Panel</h1>
         </header>
 
         {/* Page content */}

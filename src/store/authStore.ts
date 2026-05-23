@@ -2,6 +2,13 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import type { AuthState, User } from '../types';
 import authService from '../services/authService';
+import { useThemeStore, applyTheme } from './themeStore';
+
+function syncTheme(user: User) {
+  const theme = user.theme ?? 'system';
+  useThemeStore.getState().syncFromUser(theme);
+  applyTheme(theme);
+}
 
 export const useAuthStore = create<AuthState>()(
   persist(
@@ -21,13 +28,13 @@ export const useAuthStore = create<AuthState>()(
       login: async (email: string, password: string) => {
         try {
           const response = await authService.login({ email, password });
-          set({ 
-            user: response.user, 
-            token: response.access_token, 
-            isAuthenticated: true 
+          syncTheme(response.user);
+          set({
+            user: response.user,
+            token: response.access_token,
+            isAuthenticated: true
           });
         } catch (error: any) {
-          // Re-throw error to be handled by component
           throw new Error(error.response?.data?.detail || 'Login failed');
         }
       },
@@ -35,6 +42,7 @@ export const useAuthStore = create<AuthState>()(
       loginWithGoogle: async (credential: string) => {
         try {
           const response = await authService.googleLogin(credential);
+          syncTheme(response.user);
           set({
             user: response.user,
             token: response.access_token,

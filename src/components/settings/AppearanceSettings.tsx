@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Sun, Moon, Monitor } from 'lucide-react';
 import { useThemeStore, applyTheme } from '../../store/themeStore';
 import type { Theme } from '../../store/themeStore';
+import { useAuthStore } from '../../store/authStore';
+import userService from '../../services/userService';
 
 const THEMES: { value: Theme; icon: React.ReactNode; label: string; description: string }[] = [
   { value: 'light', icon: <Sun className="w-5 h-5" />, label: 'Light', description: 'Always use light theme' },
@@ -11,10 +13,20 @@ const THEMES: { value: Theme; icon: React.ReactNode; label: string; description:
 
 export const AppearanceSettings: React.FC = () => {
   const { theme, setTheme } = useThemeStore();
+  const { user, updateUser } = useAuthStore();
+  const [saving, setSaving] = useState(false);
 
-  const handleTheme = (t: Theme) => {
+  const handleTheme = async (t: Theme) => {
     setTheme(t);
     applyTheme(t);
+    if (!user) return;
+    setSaving(true);
+    try {
+      const updated = await userService.updateProfile({ theme: t });
+      updateUser(updated);
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -25,13 +37,17 @@ export const AppearanceSettings: React.FC = () => {
       </div>
 
       <div>
-        <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Theme</label>
+        <div className="flex items-center justify-between mb-3">
+          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">Theme</label>
+          {saving && <span className="text-xs text-gray-400 dark:text-gray-500">Saving…</span>}
+        </div>
         <div className="grid grid-cols-3 gap-3">
           {THEMES.map((t) => (
             <button
               key={t.value}
               onClick={() => handleTheme(t.value)}
-              className={`flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 transition-colors ${
+              disabled={saving}
+              className={`flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 transition-colors disabled:opacity-60 ${
                 theme === t.value
                   ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-primary-700 dark:text-primary-300'
                   : 'border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-500'

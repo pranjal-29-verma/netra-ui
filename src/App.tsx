@@ -13,6 +13,7 @@ import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { useAuthStore } from './store/authStore';
 import { useThemeStore, applyTheme } from './store/themeStore';
+import type { Theme } from './store/themeStore';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -52,9 +53,14 @@ function App() {
     return () => mq.removeEventListener('change', handler);
   }, [theme]);
 
+  // On cold start with persisted auth, seed themeStore from the server-side value
   useEffect(() => {
-    if (isAuthenticated && user) console.log('User authenticated:', user.username);
-  }, [isAuthenticated, user]);
+    if (isAuthenticated && user?.theme) {
+      useThemeStore.getState().syncFromUser(user.theme as Theme);
+      applyTheme(user.theme as Theme);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <BrowserRouter>

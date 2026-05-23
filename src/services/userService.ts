@@ -7,6 +7,7 @@ export interface UpdateProfilePayload {
   gender?: string;
   avatar_seed?: string;
   save_conversations?: boolean;
+  theme?: 'light' | 'dark' | 'system';
 }
 
 export interface ChangePasswordPayload {

@@ -122,6 +122,21 @@ const adminService = {
   deleteDocument: async (id: number): Promise<void> => {
     await api.delete(API_ENDPOINTS.ADMIN_DOCUMENT(id));
   },
+
+  getRegistrationsTimeline: async (): Promise<DailyCount[]> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_ANALYTICS_REGISTRATIONS);
+    return data;
+  },
+
+  getConversationsTimeline: async (): Promise<DailyCount[]> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_ANALYTICS_CONVERSATIONS);
+    return data;
+  },
+
+  getTopUsers: async (): Promise<TopUser[]> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_ANALYTICS_TOP_USERS);
+    return data;
+  },
 };
 
 export interface AdminConversation {
@@ -175,6 +190,17 @@ export interface AdminRole {
   name: string;
   description?: string;
   permissions: AdminPermission[];
+}
+
+export interface DailyCount {
+  date: string;
+  count: number;
+}
+
+export interface TopUser {
+  username: string;
+  total_tokens: number;
+  today_tokens: number;
 }
 
 export default adminService;

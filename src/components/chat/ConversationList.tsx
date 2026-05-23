@@ -27,12 +27,14 @@ export const ConversationList: React.FC = () => {
   const {
     conversations, currentConversation, setCurrentConversation,
     createConversation, deleteConversation, fetchMessages,
-    isLoading, isLoadingConversations, isLoadingMore,
+    isLoadingConversations, isLoadingMore,
     loadMoreConversations, isIncognito,
   } = useChatStore();
 
   const { close: closeSidebar, isMobile } = useSidebar();
   const [query, setQuery] = useState('');
+  const [isCreating, setIsCreating] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
   const sentinelRef = useRef<HTMLDivElement>(null);
 
   // IntersectionObserver — triggers loadMore when sentinel scrolls into view
@@ -53,8 +55,10 @@ export const ConversationList: React.FC = () => {
     : conversations;
 
   const handleNewChat = async () => {
+    setIsCreating(true);
     try { await createConversation(); }
     catch { toast.error('Failed to create conversation'); }
+    finally { setIsCreating(false); }
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {
@@ -67,8 +71,10 @@ export const ConversationList: React.FC = () => {
 
   const handleDeleteConversation = async (conversationId: number, e: React.MouseEvent) => {
     e.stopPropagation();
+    setDeletingId(conversationId);
     try { await deleteConversation(conversationId); }
     catch { toast.error('Failed to delete conversation'); }
+    finally { setDeletingId(null); }
   };
 
   const formatDate = (dateString: string) => {
@@ -96,10 +102,13 @@ export const ConversationList: React.FC = () => {
         <div className="p-4 pb-2">
           <button
             onClick={handleNewChat}
-            disabled={isLoading}
+            disabled={isCreating}
             className="w-full flex items-center justify-center px-4 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors font-medium disabled:opacity-50"
           >
-            <Plus className="w-5 h-5 mr-2" />
+            {isCreating
+              ? <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+              : <Plus className="w-5 h-5 mr-2" />
+            }
             New Chat
           </button>
         </div>
@@ -176,9 +185,13 @@ export const ConversationList: React.FC = () => {
                 </div>
                 <button
                   onClick={(e) => handleDeleteConversation(conversation.id, e)}
-                  className="absolute right-2 top-3 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-opacity"
+                  disabled={deletingId === conversation.id}
+                  className="absolute right-2 top-3 opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-opacity disabled:opacity-50"
                 >
-                  <Trash2 className="w-4 h-4 text-red-500" />
+                  {deletingId === conversation.id
+                    ? <Loader2 className="w-4 h-4 text-red-500 animate-spin" />
+                    : <Trash2 className="w-4 h-4 text-red-500" />
+                  }
                 </button>
               </div>
             ))}

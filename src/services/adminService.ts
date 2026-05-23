@@ -104,7 +104,65 @@ const adminService = {
     const { data } = await api.put(API_ENDPOINTS.ADMIN_USER_ROLES(userId), { role_ids: roleIds });
     return data;
   },
+
+  getConversations: async (page = 1, limit = 20, search = ''): Promise<ConversationsPage> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_CONVERSATIONS, { params: { page, limit, search } });
+    return data;
+  },
+
+  deleteConversation: async (id: number): Promise<void> => {
+    await api.delete(API_ENDPOINTS.ADMIN_CONVERSATION(id));
+  },
+
+  getDocuments: async (page = 1, limit = 20, search = ''): Promise<DocumentsPage> => {
+    const { data } = await api.get(API_ENDPOINTS.ADMIN_DOCUMENTS, { params: { page, limit, search } });
+    return data;
+  },
+
+  deleteDocument: async (id: number): Promise<void> => {
+    await api.delete(API_ENDPOINTS.ADMIN_DOCUMENT(id));
+  },
 };
+
+export interface AdminConversation {
+  id: number;
+  title: string;
+  username: string;
+  user_id: number;
+  is_incognito: boolean;
+  message_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ConversationsPage {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  conversations: AdminConversation[];
+}
+
+export interface AdminDocument {
+  id: number;
+  filename: string;
+  file_type: string;
+  file_size?: number;
+  status: string;
+  scope: string;
+  source_url?: string;
+  username: string;
+  user_id: number;
+  created_at: string;
+}
+
+export interface DocumentsPage {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  documents: AdminDocument[];
+}
 
 export interface AdminPermission {
   id: number;

@@ -6,7 +6,8 @@ import { MessageSkeleton } from './MessageSkeleton';
 import { ChatInput } from './ChatInput';
 import { DocumentPanel } from './DocumentPanel';
 import { useChatStore } from '../../store/chatStore';
-import { useTokenStore } from '../../store/tokenStore';
+import { useTokenUsage, TOKEN_USAGE_KEY } from '../../hooks/useTokenUsage';
+import { useQueryClient } from '@tanstack/react-query';
 import { useAuthStore } from '../../store/authStore';
 
 function getGreeting(name: string): string {
@@ -17,7 +18,8 @@ function getGreeting(name: string): string {
 
 export const ChatArea: React.FC = () => {
   const { currentConversation, messages, isLoading, isLoadingMessages, isStreaming, sendMessage, stopStreaming, createConversation, fetchMessages, isIncognito } = useChatStore();
-  const { usage, fetchUsage } = useTokenStore();
+  const { data: usage } = useTokenUsage();
+  const qc = useQueryClient();
   const { user } = useAuthStore();
   const [docPanelOpen, setDocPanelOpen] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -38,7 +40,7 @@ export const ChatArea: React.FC = () => {
         await fetchMessages(conversationId);
       }
       await sendMessage(conversationId, content);
-      fetchUsage().catch(() => {});
+      qc.invalidateQueries({ queryKey: TOKEN_USAGE_KEY });
     } catch {
       toast.error('Failed to send message');
     }

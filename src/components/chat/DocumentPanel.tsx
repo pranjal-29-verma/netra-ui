@@ -1,7 +1,7 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useRef } from 'react';
 import { X, Upload, Link, Trash2, FileText, Globe, AlertCircle, CheckCircle, Loader, MessageSquare } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useDocumentStore } from '../../store/documentStore';
+import { useDocuments, useUploadFile, useAddUrl, useDeleteDocument } from '../../hooks/useDocuments';
 import { useChatStore } from '../../store/chatStore';
 import type { Document } from '../../types';
 
@@ -47,7 +47,6 @@ function formatSize(bytes?: number) {
 }
 
 export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
-  const { documents, isUploading, fetchDocuments, uploadFile, addUrl, deleteDocument } = useDocumentStore();
   const { currentConversation } = useChatStore();
   const [urlInput, setUrlInput] = useState('');
   const [isDragging, setIsDragging] = useState(false);
@@ -59,9 +58,12 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
   const thisChatscopeBlocked = uploadScope === 'conversation' && (isIncognitoConversation || !conversationId);
   const noConversationWarning = uploadScope === 'conversation' && !isIncognitoConversation && !conversationId;
 
-  useEffect(() => {
-    fetchDocuments(conversationId).catch(() => toast.error('Failed to load documents'));
-  }, [fetchDocuments, conversationId]);
+  const { data: documents = [] } = useDocuments(conversationId);
+  const uploadFile = useUploadFile(conversationId);
+  const addUrl = useAddUrl(conversationId);
+  const deleteDocument = useDeleteDocument(conversationId);
+
+  const isUploading = uploadFile.isPending || addUrl.isPending;
 
   const isDuplicateFile = (filename: string) =>
     documents.some((d) => d.filename === filename && d.scope === uploadScope &&
@@ -75,20 +77,15 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
     if (!files?.length) return;
     if (thisChatscopeBlocked) return;
     const file = files[0];
-    if (isDuplicateFile(file.name)) {
-      toast.error(`"${file.name}" is already uploaded in this scope`);
-      return;
-    }
-    if (file.size > MAX_MB * 1024 * 1024) {
-      toast.error(`File exceeds ${MAX_MB} MB limit`);
-      return;
-    }
-    try {
-      await uploadFile(file, uploadScope, conversationId);
-      toast.success(`${file.name} uploaded`);
-    } catch (err: any) {
-      toast.error(err?.response?.data?.detail || 'Upload failed');
-    }
+    if (isDuplicateFile(file.name)) { toast.error(`"${file.name}" is already uploaded in this scope`); return; }
+    if (file.size > MAX_MB * 1024 * 1024) { toast.error(`File exceeds ${MAX_MB} MB limit`); return; }
+    uploadFile.mutate(
+      { file, scope: uploadScope },
+      {
+        onSuccess: () => toast.success(`${file.name} uploaded`),
+        onError: (err: any) => toast.error(err?.response?.data?.detail || 'Upload failed'),
+      },
+    );
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -97,36 +94,25 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
     handleFiles(e.dataTransfer.files);
   };
 
-  const handleAddUrl = async () => {
+  const handleAddUrl = () => {
     const trimmed = urlInput.trim();
-    if (!trimmed) return;
-    if (thisChatscopeBlocked) return;
-    try {
-      new URL(trimmed);
-    } catch {
-      toast.error('Please enter a valid URL');
-      return;
-    }
-    if (isDuplicateUrl(trimmed)) {
-      toast.error('This URL is already added in this scope');
-      return;
-    }
-    try {
-      await addUrl(trimmed, undefined, uploadScope, conversationId);
-      setUrlInput('');
-      toast.success('URL added');
-    } catch {
-      toast.error('Failed to add URL');
-    }
+    if (!trimmed || thisChatscopeBlocked) return;
+    try { new URL(trimmed); } catch { toast.error('Please enter a valid URL'); return; }
+    if (isDuplicateUrl(trimmed)) { toast.error('This URL is already added in this scope'); return; }
+    addUrl.mutate(
+      { url: trimmed, scope: uploadScope },
+      {
+        onSuccess: () => { setUrlInput(''); toast.success('URL added'); },
+        onError: () => toast.error('Failed to add URL'),
+      },
+    );
   };
 
-  const handleDelete = async (doc: Document) => {
-    try {
-      await deleteDocument(doc.id);
-      toast.success(`${doc.filename} removed`);
-    } catch {
-      toast.error('Failed to delete document');
-    }
+  const handleDelete = (doc: Document) => {
+    deleteDocument.mutate(doc.id, {
+      onSuccess: () => toast.success(`${doc.filename} removed`),
+      onError: () => toast.error('Failed to delete document'),
+    });
   };
 
   return (
@@ -147,24 +133,18 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
             <button
               onClick={() => setUploadScope('global')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 transition-colors ${
-                uploadScope === 'global'
-                  ? 'bg-primary-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                uploadScope === 'global' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <Globe className="w-3.5 h-3.5" />
-              Knowledge Base
+              <Globe className="w-3.5 h-3.5" /> Knowledge Base
             </button>
             <button
               onClick={() => setUploadScope('conversation')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 transition-colors border-l border-gray-200 ${
-                uploadScope === 'conversation'
-                  ? 'bg-violet-600 text-white'
-                  : 'bg-white text-gray-600 hover:bg-gray-50'
+                uploadScope === 'conversation' ? 'bg-violet-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
               }`}
             >
-              <MessageSquare className="w-3.5 h-3.5" />
-              This Chat
+              <MessageSquare className="w-3.5 h-3.5" /> This Chat
             </button>
           </div>
           {isIncognitoConversation && uploadScope === 'conversation' && (
@@ -195,21 +175,12 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
               : 'border-gray-300 hover:border-primary-300 hover:bg-gray-50 cursor-pointer'
           }`}
         >
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED}
-            className="hidden"
-            onChange={(e) => handleFiles(e.target.files)}
-          />
-          {isUploading ? (
-            <Loader className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-2" />
-          ) : (
-            <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
-          )}
-          <p className="text-sm font-medium text-gray-700">
-            {isUploading ? 'Uploading…' : 'Drop file or click to browse'}
-          </p>
+          <input ref={fileInputRef} type="file" accept={ACCEPTED} className="hidden" onChange={(e) => handleFiles(e.target.files)} />
+          {isUploading
+            ? <Loader className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-2" />
+            : <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+          }
+          <p className="text-sm font-medium text-gray-700">{isUploading ? 'Uploading…' : 'Drop file or click to browse'}</p>
           <p className="text-xs text-gray-400 mt-1">PDF, TXT, DOCX, MD · Max {MAX_MB} MB</p>
         </div>
 
@@ -256,14 +227,13 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <StatusBadge status={doc.status} />
                       <ScopeBadge scope={doc.scope} />
-                      {doc.file_size && (
-                        <span className="text-xs text-gray-400">{formatSize(doc.file_size)}</span>
-                      )}
+                      {doc.file_size && <span className="text-xs text-gray-400">{formatSize(doc.file_size)}</span>}
                     </div>
                   </div>
                   <button
                     onClick={() => handleDelete(doc)}
-                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity flex-shrink-0"
+                    disabled={deleteDocument.isPending}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-red-50 rounded transition-opacity flex-shrink-0 disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4 text-red-400" />
                   </button>

@@ -1,15 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
-import { useTokenStore } from '../../store/tokenStore';
+import { useTokenUsage } from '../../hooks/useTokenUsage';
 
 export const TokenUsageBar: React.FC = () => {
-  const { usage, fetchUsage } = useTokenStore();
+  const { data: usage } = useTokenUsage();
   const warned = useRef(false);
-
-  useEffect(() => {
-    fetchUsage().catch(() => {});
-  }, [fetchUsage]);
 
   useEffect(() => {
     if (!usage) return;

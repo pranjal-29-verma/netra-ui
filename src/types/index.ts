@@ -20,6 +20,7 @@ export interface User {
   gender?: string;
   avatar_seed?: string;
   save_conversations?: boolean;
+  theme?: 'light' | 'dark' | 'system';
   googleId?: string;
   roles?: Role[];
 }

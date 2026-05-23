@@ -171,13 +171,13 @@ user_roles         → user_id, role_id
 
 | # | Item | Status |
 |---|------|--------|
-| P5.1 | RBAC foundation — tables, migration, backend permission guard, seed data | 🔄 In Progress |
-| P5.2 | Admin layout & auth — `/admin` route, sidebar nav, permission-aware menu | ⏳ Pending |
-| P5.3 | Overview dashboard — stats cards, recent activity | ⏳ Pending |
-| P5.4 | User management — list, search, ban/unban, delete | ⏳ Pending |
-| P5.5 | Role assignment UI — assign/revoke roles to users, view role permissions | ⏳ Pending |
-| P5.6 | Content oversight — conversation metadata (no message content, privacy), documents | ⏳ Pending |
-| P5.7 | Analytics — token usage charts, active users, top consumers (Recharts) | ⏳ Pending |
+| P5.1 | RBAC foundation — tables, migration, backend permission guard, seed data | ✅ Done |
+| P5.2 | Admin layout & auth — `/admin` route, sidebar nav, permission-aware menu | ✅ Done |
+| P5.3 | Overview dashboard — stats cards, recent activity | ✅ Done |
+| P5.4 | User management — list, search, ban/unban, delete | ✅ Done |
+| P5.5 | Role assignment UI — assign/revoke roles to users, view role permissions | ✅ Done |
+| P5.6 | Content oversight — conversation metadata (no message content, privacy), documents | ✅ Done |
+| P5.7 | Analytics — token usage charts, active users, top consumers (Recharts) | ✅ Done |
 
 > **Privacy note:** Admins see conversation metadata only (title, date, count, tokens). Message content is never exposed to admins.
 
@@ -223,8 +223,8 @@ DEFAULT_DAILY_TOKEN_QUOTA=100000
 | LLM Integration / RAG / Streaming | ✅ Done |
 | Dark Mode + Settings + Refresh Token | ✅ Done |
 | Enhancements E1–E7 | ✅ Done |
-| Phase 5: Admin Panel | 🔄 In Progress (P5.1) |
+| Phase 5: Admin Panel | ✅ Done |
 
 ---
 
-**Last Updated:** E1–E7 complete — Phase 5 Admin Panel started (P5.1 RBAC foundation)
+**Last Updated:** Phase 5 Admin Panel complete (P5.1–P5.7). Next: E4 Payment gateway or new features.

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import adminService from '../services/adminService';
+import adminService, { type UsersPage, type ConversationsPage, type DocumentsPage } from '../services/adminService';
 
 // ── Query keys ──────────────────────────────────────────────────────────────────
 
@@ -55,8 +55,11 @@ export function useToggleBan() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => adminService.toggleBan(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+    onSuccess: (res, id) => {
+      qc.setQueriesData<UsersPage>({ queryKey: ['admin', 'users'] }, (old) => {
+        if (!old) return old;
+        return { ...old, users: old.users.map((u) => u.id === id ? { ...u, is_active: res.is_active } : u) };
+      });
     },
   });
 }
@@ -65,8 +68,11 @@ export function useDeleteUser() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => adminService.deleteUser(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'users'] });
+    onSuccess: (_res, id) => {
+      qc.setQueriesData<UsersPage>({ queryKey: ['admin', 'users'] }, (old) => {
+        if (!old) return old;
+        return { ...old, total: old.total - 1, users: old.users.filter((u) => u.id !== id) };
+      });
     },
   });
 }
@@ -124,8 +130,11 @@ export function useDeleteAdminConversation() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => adminService.deleteConversation(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'conversations'] });
+    onSuccess: (_res, id) => {
+      qc.setQueriesData<ConversationsPage>({ queryKey: ['admin', 'conversations'] }, (old) => {
+        if (!old) return old;
+        return { ...old, total: old.total - 1, conversations: old.conversations.filter((c) => c.id !== id) };
+      });
     },
   });
 }
@@ -142,8 +151,11 @@ export function useDeleteAdminDocument() {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: (id: number) => adminService.deleteDocument(id),
-    onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ['admin', 'documents'] });
+    onSuccess: (_res, id) => {
+      qc.setQueriesData<DocumentsPage>({ queryKey: ['admin', 'documents'] }, (old) => {
+        if (!old) return old;
+        return { ...old, total: old.total - 1, documents: old.documents.filter((d) => d.id !== id) };
+      });
     },
   });
 }

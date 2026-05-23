@@ -1,19 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Users, MessageSquare, FileText, Zap, TrendingUp, UserPlus } from 'lucide-react';
-import adminService, { type AdminStats, type AdminActivity } from '../../services/adminService';
+import { useAdminStats, useAdminActivity } from '../../hooks/useAdminQueries';
 
-function StatCard({
-  label,
-  value,
-  sub,
-  icon,
-  iconClass,
-}: {
-  label: string;
-  value: number | string;
-  sub?: string;
-  icon: React.ReactNode;
-  iconClass: string;
+function StatCard({ label, value, sub, icon, iconClass }: {
+  label: string; value: number | string; sub?: string; icon: React.ReactNode; iconClass: string;
 }) {
   return (
     <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-5 flex items-center gap-4">
@@ -40,22 +30,10 @@ function timeAgo(iso: string): string {
 }
 
 export const AdminDashboard: React.FC = () => {
-  const [stats, setStats] = useState<AdminStats | null>(null);
-  const [activity, setActivity] = useState<AdminActivity | null>(null);
-  const [loading, setLoading] = useState(true);
+  const { data: stats, isLoading: loadingStats } = useAdminStats();
+  const { data: activity, isLoading: loadingActivity } = useAdminActivity();
 
-  useEffect(() => {
-    const load = async () => {
-      try {
-        const [s, a] = await Promise.all([adminService.getStats(), adminService.getActivity()]);
-        setStats(s);
-        setActivity(a);
-      } finally {
-        setLoading(false);
-      }
-    };
-    load();
-  }, []);
+  const loading = loadingStats || loadingActivity;
 
   return (
     <div>
@@ -97,7 +75,6 @@ export const AdminDashboard: React.FC = () => {
 
       {/* Activity feed */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
         {/* Recent signups */}
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-2 px-5 py-4 border-b border-gray-100 dark:border-gray-700">
@@ -105,7 +82,7 @@ export const AdminDashboard: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Signups</h3>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {loading ? (
+            {loadingActivity ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="px-5 py-3 flex items-center gap-3 animate-pulse">
                   <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-700 flex-shrink-0" />
@@ -143,7 +120,7 @@ export const AdminDashboard: React.FC = () => {
             <h3 className="text-sm font-semibold text-gray-800 dark:text-gray-100">Recent Conversations</h3>
           </div>
           <div className="divide-y divide-gray-100 dark:divide-gray-700">
-            {loading ? (
+            {loadingActivity ? (
               Array.from({ length: 4 }).map((_, i) => (
                 <div key={i} className="px-5 py-3 flex items-center gap-3 animate-pulse">
                   <div className="flex-1 space-y-1.5">
@@ -167,7 +144,6 @@ export const AdminDashboard: React.FC = () => {
             )}
           </div>
         </div>
-
       </div>
     </div>
   );

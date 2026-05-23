@@ -27,7 +27,7 @@ export const ConversationList: React.FC = () => {
   const {
     conversations, currentConversation, setCurrentConversation,
     createConversation, deleteConversation, fetchMessages,
-    isLoading, isLoadingConversations, isLoadingMore, hasMoreConversations,
+    isLoading, isLoadingConversations, isLoadingMore,
     loadMoreConversations, isIncognito,
   } = useChatStore();
 

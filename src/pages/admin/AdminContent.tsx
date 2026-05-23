@@ -1,12 +1,12 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { Search, Trash2, ChevronLeft, ChevronRight, X, MessageSquare, FileText, Globe, EyeOff, ArrowUp, ArrowDown, ChevronsUpDown } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, Trash2, ChevronLeft, ChevronRight, X, MessageSquare, FileText, Globe, EyeOff, ArrowUp, ArrowDown, ChevronsUpDown, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
-import adminService, {
-  type AdminConversation, type ConversationsPage,
-  type AdminDocument, type DocumentsPage,
-} from '../../services/adminService';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
+import {
+  useAdminConversations, useDeleteAdminConversation,
+  useAdminDocuments, useDeleteAdminDocument,
+} from '../../hooks/useAdminQueries';
 
 function formatBytes(bytes?: number): string {
   if (!bytes) return '—';
@@ -23,21 +23,14 @@ function timeAgo(iso: string): string {
   return new Date(iso).toLocaleDateString();
 }
 
-// ── Shared sort types & header ─────────────────────────────────────────────────
-
 type SortDir = 'asc' | 'desc';
 
 function SortHeader({ label, active, dir, onClick }: { label: string; active: boolean; dir: SortDir; onClick: () => void }) {
   return (
-    <button
-      onClick={onClick}
-      className="flex items-center gap-1 group font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors select-none"
-    >
+    <button onClick={onClick} className="flex items-center gap-1 group font-medium text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 transition-colors select-none">
       {label}
       {active
-        ? dir === 'asc'
-          ? <ArrowUp className="w-3.5 h-3.5 text-primary-500" />
-          : <ArrowDown className="w-3.5 h-3.5 text-primary-500" />
+        ? dir === 'asc' ? <ArrowUp className="w-3.5 h-3.5 text-primary-500" /> : <ArrowDown className="w-3.5 h-3.5 text-primary-500" />
         : <ChevronsUpDown className="w-3.5 h-3.5 opacity-0 group-hover:opacity-50 transition-opacity" />
       }
     </button>
@@ -52,41 +45,28 @@ function ConversationsTab() {
   const { user: me } = useAuthStore();
   const canDelete = hasPermission(me, 'conversations:delete');
 
-  const [page, setPage]       = useState(1);
-  const [search, setSearch]   = useState('');
-  const [query, setQuery]     = useState('');
-  const [data, setData]       = useState<ConversationsPage | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage]     = useState(1);
+  const [search, setSearch] = useState('');
+  const [query, setQuery]   = useState('');
   const [sortKey, setSortKey] = useState<ConvSortKey>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const { data, isLoading } = useAdminConversations(page, query);
+  const deleteConv = useDeleteAdminConversation();
 
   const toggleSort = (key: ConvSortKey) => {
     if (sortKey === key) setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('desc'); }
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setData(await adminService.getConversations(page, 20, query));
-    } finally {
-      setLoading(false);
-    }
-  }, [page, query]);
-
-  useEffect(() => { load(); }, [load]);
-
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); setQuery(search); };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!window.confirm('Delete this conversation permanently?')) return;
-    try {
-      await adminService.deleteConversation(id);
-      toast.success('Conversation deleted');
-      setData((prev) => prev ? { ...prev, total: prev.total - 1, conversations: prev.conversations.filter((c) => c.id !== id) } : prev);
-    } catch {
-      toast.error('Failed to delete conversation');
-    }
+    deleteConv.mutate(id, {
+      onSuccess: () => toast.success('Conversation deleted'),
+      onError: () => toast.error('Failed to delete conversation'),
+    });
   };
 
   const sorted = [...(data?.conversations ?? [])].sort((a, b) => {
@@ -97,14 +77,11 @@ function ConversationsTab() {
 
   return (
     <div>
-      {/* Search bar */}
       <form onSubmit={handleSearch} className="flex items-center gap-2 mb-4">
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Search title or username…"
             className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
@@ -124,57 +101,50 @@ function ConversationsTab() {
               <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
                 <th className="text-left px-4 py-3">Title</th>
                 <th className="text-left px-4 py-3">User</th>
-                <th className="text-left px-4 py-3">
-                  <SortHeader label="Messages" active={sortKey === 'message_count'} dir={sortDir} onClick={() => toggleSort('message_count')} />
-                </th>
-                <th className="text-left px-4 py-3">
-                  <SortHeader label="Created" active={sortKey === 'created_at'} dir={sortDir} onClick={() => toggleSort('created_at')} />
-                </th>
+                <th className="text-left px-4 py-3"><SortHeader label="Messages" active={sortKey === 'message_count'} dir={sortDir} onClick={() => toggleSort('message_count')} /></th>
+                <th className="text-left px-4 py-3"><SortHeader label="Created" active={sortKey === 'created_at'} dir={sortDir} onClick={() => toggleSort('created_at')} /></th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {loading ? (
+              {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    {[...Array(4)].map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
-                      </td>
-                    ))}
+                    {[...Array(4)].map((_, j) => <td key={j} className="px-4 py-3"><div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" /></td>)}
                     <td className="px-4 py-3" />
                   </tr>
                 ))
               ) : data?.conversations.length === 0 ? (
                 <tr><td colSpan={5} className="px-4 py-12 text-center text-gray-400">No conversations found.</td></tr>
               ) : (
-                sorted.map((c) => (
-                  <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {c.is_incognito
-                          ? <EyeOff className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" />
-                          : <MessageSquare className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />
-                        }
-                        <span className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-48">{c.title}</span>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{c.username}</td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{c.message_count}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{timeAgo(c.created_at)}</td>
-                    <td className="px-4 py-3">
-                      {canDelete && (
-                        <button
-                          onClick={() => handleDelete(c.id)}
-                          className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Delete conversation"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                sorted.map((c) => {
+                  const isDeleting = deleteConv.isPending && deleteConv.variables === c.id;
+                  return (
+                    <tr key={c.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {c.is_incognito ? <EyeOff className="w-3.5 h-3.5 text-purple-500 flex-shrink-0" /> : <MessageSquare className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
+                          <span className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-48">{c.title}</span>
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{c.username}</td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{c.message_count}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{timeAgo(c.created_at)}</td>
+                      <td className="px-4 py-3">
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(c.id)}
+                            disabled={isDeleting}
+                            className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                            title="Delete conversation"
+                          >
+                            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -206,41 +176,28 @@ function DocumentsTab() {
   const { user: me } = useAuthStore();
   const canDelete = hasPermission(me, 'documents:delete');
 
-  const [page, setPage]       = useState(1);
-  const [search, setSearch]   = useState('');
-  const [query, setQuery]     = useState('');
-  const [data, setData]       = useState<DocumentsPage | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [page, setPage]     = useState(1);
+  const [search, setSearch] = useState('');
+  const [query, setQuery]   = useState('');
   const [sortKey, setSortKey] = useState<DocSortKey>('created_at');
   const [sortDir, setSortDir] = useState<SortDir>('desc');
+
+  const { data, isLoading } = useAdminDocuments(page, query);
+  const deleteDoc = useDeleteAdminDocument();
 
   const toggleSort = (key: DocSortKey) => {
     if (sortKey === key) setSortDir((d) => d === 'asc' ? 'desc' : 'asc');
     else { setSortKey(key); setSortDir('desc'); }
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    try {
-      setData(await adminService.getDocuments(page, 20, query));
-    } finally {
-      setLoading(false);
-    }
-  }, [page, query]);
-
-  useEffect(() => { load(); }, [load]);
-
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); setQuery(search); };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = (id: number) => {
     if (!window.confirm('Delete this document permanently?')) return;
-    try {
-      await adminService.deleteDocument(id);
-      toast.success('Document deleted');
-      setData((prev) => prev ? { ...prev, total: prev.total - 1, documents: prev.documents.filter((d) => d.id !== id) } : prev);
-    } catch {
-      toast.error('Failed to delete document');
-    }
+    deleteDoc.mutate(id, {
+      onSuccess: () => toast.success('Document deleted'),
+      onError: () => toast.error('Failed to delete document'),
+    });
   };
 
   const sortedDocs = [...(data?.documents ?? [])].sort((a, b) => {
@@ -248,9 +205,6 @@ function DocumentsTab() {
     if (sortKey === 'file_size') return ((a.file_size ?? 0) - (b.file_size ?? 0)) * mul;
     return (new Date(a.created_at).getTime() - new Date(b.created_at).getTime()) * mul;
   });
-
-  const fileTypeIcon = (type: string, url?: string) =>
-    url ? <Globe className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" /> : <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />;
 
   const statusBadge = (s: string) => {
     const map: Record<string, string> = {
@@ -267,9 +221,7 @@ function DocumentsTab() {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <input
-            type="text"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            type="text" value={search} onChange={(e) => setSearch(e.target.value)}
             placeholder="Search filename or username…"
             className="w-full pl-9 pr-3 py-2 text-sm bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary-500"
           />
@@ -289,59 +241,55 @@ function DocumentsTab() {
               <tr className="border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-700/50">
                 <th className="text-left px-4 py-3">File</th>
                 <th className="text-left px-4 py-3">User</th>
-                <th className="text-left px-4 py-3">
-                  <SortHeader label="Size" active={sortKey === 'file_size'} dir={sortDir} onClick={() => toggleSort('file_size')} />
-                </th>
+                <th className="text-left px-4 py-3"><SortHeader label="Size" active={sortKey === 'file_size'} dir={sortDir} onClick={() => toggleSort('file_size')} /></th>
                 <th className="text-left px-4 py-3">Status</th>
-                <th className="text-left px-4 py-3">
-                  <SortHeader label="Uploaded" active={sortKey === 'created_at'} dir={sortDir} onClick={() => toggleSort('created_at')} />
-                </th>
+                <th className="text-left px-4 py-3"><SortHeader label="Uploaded" active={sortKey === 'created_at'} dir={sortDir} onClick={() => toggleSort('created_at')} /></th>
                 <th className="px-4 py-3" />
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {loading ? (
+              {isLoading ? (
                 Array.from({ length: 8 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
-                    {[...Array(5)].map((_, j) => (
-                      <td key={j} className="px-4 py-3">
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" />
-                      </td>
-                    ))}
+                    {[...Array(5)].map((_, j) => <td key={j} className="px-4 py-3"><div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-20" /></td>)}
                     <td className="px-4 py-3" />
                   </tr>
                 ))
               ) : data?.documents.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No documents found.</td></tr>
               ) : (
-                sortedDocs.map((d) => (
-                  <tr key={d.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        {fileTypeIcon(d.file_type, d.source_url)}
-                        <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-48">{d.filename}</p>
-                          <p className="text-xs text-gray-400 uppercase">{d.file_type}</p>
+                sortedDocs.map((d) => {
+                  const isDeleting = deleteDoc.isPending && deleteDoc.variables === d.id;
+                  return (
+                    <tr key={d.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {d.source_url ? <Globe className="w-3.5 h-3.5 text-blue-500 flex-shrink-0" /> : <FileText className="w-3.5 h-3.5 text-gray-400 flex-shrink-0" />}
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100 truncate max-w-48">{d.filename}</p>
+                            <p className="text-xs text-gray-400 uppercase">{d.file_type}</p>
+                          </div>
                         </div>
-                      </div>
-                    </td>
-                    <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{d.username}</td>
-                    <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{formatBytes(d.file_size)}</td>
-                    <td className="px-4 py-3">{statusBadge(d.status)}</td>
-                    <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{timeAgo(d.created_at)}</td>
-                    <td className="px-4 py-3">
-                      {canDelete && (
-                        <button
-                          onClick={() => handleDelete(d.id)}
-                          className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                          title="Delete document"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                      <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{d.username}</td>
+                      <td className="px-4 py-3 text-gray-500 dark:text-gray-400 text-xs">{formatBytes(d.file_size)}</td>
+                      <td className="px-4 py-3">{statusBadge(d.status)}</td>
+                      <td className="px-4 py-3 text-xs text-gray-500 dark:text-gray-400">{timeAgo(d.created_at)}</td>
+                      <td className="px-4 py-3">
+                        {canDelete && (
+                          <button
+                            onClick={() => handleDelete(d.id)}
+                            disabled={isDeleting}
+                            className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
+                            title="Delete document"
+                          >
+                            {isDeleting ? <Loader2 className="w-4 h-4 animate-spin" /> : <Trash2 className="w-4 h-4" />}
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
@@ -381,7 +329,6 @@ export const AdminContent: React.FC = () => {
         </p>
       </div>
 
-      {/* Tabs */}
       <div className="flex gap-1 mb-6 bg-gray-100 dark:bg-gray-700/50 p-1 rounded-xl w-fit">
         {([
           { key: 'conversations', label: 'Conversations', icon: <MessageSquare className="w-4 h-4" /> },
@@ -396,8 +343,7 @@ export const AdminContent: React.FC = () => {
                 : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300'
             }`}
           >
-            {t.icon}
-            {t.label}
+            {t.icon}{t.label}
           </button>
         ))}
       </div>

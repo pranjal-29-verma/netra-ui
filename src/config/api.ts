@@ -35,6 +35,9 @@ export const API_ENDPOINTS = {
   ADMIN_CONVERSATION: (id: number) => `/api/admin/conversations/${id}`,
   ADMIN_DOCUMENTS: '/api/admin/documents',
   ADMIN_DOCUMENT: (id: number) => `/api/admin/documents/${id}`,
+  ADMIN_ANALYTICS_REGISTRATIONS: '/api/admin/analytics/registrations',
+  ADMIN_ANALYTICS_CONVERSATIONS: '/api/admin/analytics/conversations',
+  ADMIN_ANALYTICS_TOP_USERS: '/api/admin/analytics/top-users',
 
   // Document endpoints
   DOCUMENTS: '/api/documents',

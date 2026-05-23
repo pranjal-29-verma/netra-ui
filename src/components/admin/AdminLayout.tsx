@@ -61,86 +61,89 @@ export const AdminLayout: React.FC<AdminLayoutProps> = ({ children }) => {
 
       {/* Sidebar */}
       <aside className={`
-        flex flex-col flex-shrink-0
-        bg-gray-900 dark:bg-gray-950
-        transition-all duration-300 ease-in-out
-        fixed inset-y-0 left-0 z-50 w-64
-        lg:relative lg:translate-x-0
-        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        flex-shrink-0 bg-gray-900 dark:bg-gray-950
+        transition-all duration-300 ease-in-out overflow-hidden
+        fixed inset-y-0 left-0 z-50
+        lg:relative lg:inset-auto lg:z-auto lg:translate-x-0
+        ${sidebarOpen ? 'w-64 translate-x-0' : 'w-64 -translate-x-full lg:w-0'}
       `}>
+        {/* Inner wrapper keeps w-64 so content doesn't squish during desktop collapse */}
+        <div className="flex flex-col h-full w-64">
 
-        {/* Logo */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-700">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <ShieldCheck className="w-5 h-5 text-white" />
-            </div>
-            <div>
-              <p className="text-sm font-bold text-white">Netra Admin</p>
-              <p className="text-xs text-gray-400">Control Panel</p>
-            </div>
-          </div>
-          <button
-            onClick={() => setSidebarOpen(false)}
-            className="lg:hidden p-1 text-gray-400 hover:text-white rounded"
-          >
-            <X className="w-4 h-4" />
-          </button>
-        </div>
-
-        {/* Nav */}
-        <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
-          {visibleNav.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              end={item.to === '/admin'}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
-                  isActive
-                    ? 'bg-primary-600 text-white'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`
-              }
-            >
-              {item.icon}
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
-
-        {/* Back to app + user footer */}
-        <div className="flex-shrink-0 p-3 border-t border-gray-700 space-y-2">
-          <button
-            onClick={() => navigate('/dashboard')}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
-          >
-            <MessageSquare className="w-4 h-4" />
-            Back to Chat
-          </button>
-
-          <div className="flex items-center gap-2 px-1">
-            <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-primary-800">
-              {user?.avatar_seed ? (
-                <img src={avatarUrl(user.avatar_seed, user.gender)} alt="avatar" className="w-full h-full object-cover" />
-              ) : (
-                <span className="w-full h-full flex items-center justify-center text-xs font-medium text-white">
-                  {user?.username?.charAt(0).toUpperCase()}
-                </span>
-              )}
-            </div>
-            <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white truncate">{user?.display_name || user?.username}</p>
-              <p className="text-xs text-gray-500 truncate">{user?.roles?.map(r => r.name).join(', ')}</p>
+          {/* Logo */}
+          <div className="flex items-center justify-between p-4 border-b border-gray-700">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <p className="text-sm font-bold text-white">Netra Admin</p>
+                <p className="text-xs text-gray-400">Control Panel</p>
+              </div>
             </div>
             <button
-              onClick={handleLogout}
-              className="p-1.5 text-gray-400 hover:text-red-400 rounded transition-colors"
-              title="Logout"
+              onClick={() => setSidebarOpen(false)}
+              className="lg:hidden p-1 text-gray-400 hover:text-white rounded"
             >
-              <LogOut className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
+
+          {/* Nav */}
+          <nav className="flex-1 p-3 space-y-0.5 overflow-y-auto">
+            {visibleNav.map((item) => (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                end={item.to === '/admin'}
+                className={({ isActive }) =>
+                  `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm transition-colors ${
+                    isActive
+                      ? 'bg-primary-600 text-white'
+                      : 'text-gray-400 hover:bg-gray-800 hover:text-white'
+                  }`
+                }
+              >
+                {item.icon}
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+
+          {/* Back to app + user footer */}
+          <div className="flex-shrink-0 p-3 border-t border-gray-700 space-y-2">
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:bg-gray-800 hover:text-white rounded-lg transition-colors"
+            >
+              <MessageSquare className="w-4 h-4" />
+              Back to Chat
+            </button>
+
+            <div className="flex items-center gap-2 px-1">
+              <div className="w-7 h-7 rounded-full overflow-hidden flex-shrink-0 bg-primary-800">
+                {user?.avatar_seed ? (
+                  <img src={avatarUrl(user.avatar_seed, user.gender)} alt="avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="w-full h-full flex items-center justify-center text-xs font-medium text-white">
+                    {user?.username?.charAt(0).toUpperCase()}
+                  </span>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs font-medium text-white truncate">{user?.display_name || user?.username}</p>
+                <p className="text-xs text-gray-500 truncate">{user?.roles?.map(r => r.name).join(', ')}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="p-1.5 text-gray-400 hover:text-red-400 rounded transition-colors"
+                title="Logout"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+
         </div>
       </aside>
 

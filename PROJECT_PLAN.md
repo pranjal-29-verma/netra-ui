@@ -11,6 +11,7 @@
 - Zustand v5 (state management)
 - Axios (HTTP client)
 - React Router (routing)
+- TanStack React Query v5 (server state management)
 - react-markdown + remark-gfm (markdown rendering)
 - react-hot-toast (notifications)
 
@@ -49,13 +50,18 @@ netra-ui/
 │   │   ├── chat/               # ChatLayout, ChatArea, ChatInput, Message,
 │   │   │                       # ConversationList, DocumentPanel,
 │   │   │                       # TokenUsageBar, SettingsModal
-│   │   └── common/             # Button, Input
-│   ├── pages/                  # Login, Register, Dashboard
-│   ├── services/               # api.ts (axios + refresh interceptor), authService, documentService
-│   ├── store/                  # authStore, chatStore, tokenStore, documentStore, themeStore
+│   │   ├── admin/              # AdminLayout, AdminRoute
+│   │   └── settings/           # AppearanceSettings, ProfileSettings, etc.
+│   ├── pages/                  # Login, Register, Dashboard, Settings
+│   │   └── admin/              # AdminDashboard, AdminUsers, AdminRoles,
+│   │                           # AdminContent, AdminAnalytics, AdminModels
+│   ├── services/               # api.ts, authService, userService,
+│   │                           # adminService, llmConfigService
+│   ├── store/                  # authStore, chatStore, themeStore
+│   ├── hooks/                  # useAdminQueries, useDocuments, useTokenUsage
 │   ├── types/index.ts
 │   ├── config/api.ts           # API endpoint constants
-│   ├── App.tsx                 # Theme wiring
+│   ├── App.tsx
 │   └── index.css
 ├── tailwind.config.js          # darkMode: 'class', primary palette
 ├── AI_CODE_CLI_RULES.md
@@ -130,10 +136,8 @@ netra-ui/
 - Dark / Light / System theme toggle with persisted `themeStore`
 - System mode follows OS preference via `matchMedia` listener
 - Theme moved into `SettingsModal` (gear icon in sidebar footer)
-- Refresh token interceptor with concurrent-request queue (breaks circular dep via dynamic import)
-- Chat input footer dark background fix
+- Refresh token interceptor with concurrent-request queue
 - Daily token quota + access token expiry configurable from `.env`
-- Gen-Z IST quota exhaustion message
 
 ---
 
@@ -144,7 +148,7 @@ netra-ui/
 | E1 | User message bubble + avatar CSS mismatch vs AI side | Bug | ✅ Done |
 | E2 | Search conversations / messages | Enhancement | ✅ Done |
 | E3 | Profile settings — covered by E7 | Enhancement | ✅ Done (via E7) |
-| E4 | Payment gateway integration | Enhancement | ⏳ Deferred (post Phase 5) |
+| E4 | Payment gateway integration | Enhancement | ⏳ Phase 7 |
 | E5 | Mobile responsive collapsible sidebar | Enhancement | ✅ Done |
 | E6a | Skeleton loader — conversation list | Enhancement | ✅ Done |
 | E6b | Skeleton loader — messages (no flash of empty state) | Bug fix | ✅ Done |
@@ -153,7 +157,7 @@ netra-ui/
 
 ---
 
-## Phase 5: Admin Panel
+## Phase 5: Admin Panel ✅ Complete
 
 Full RBAC (Role-Based Access Control) foundation + admin UI.
 
@@ -164,10 +168,6 @@ permissions        → id, name (e.g. "users:delete", "analytics:view")
 role_permissions   → role_id, permission_id
 user_roles         → user_id, role_id
 ```
-- First admin assigned manually in DB
-- Future roles created via UI (P5.5)
-
-### Iterations
 
 | # | Item | Status |
 |---|------|--------|
@@ -178,8 +178,50 @@ user_roles         → user_id, role_id
 | P5.5 | Role assignment UI — assign/revoke roles to users, view role permissions | ✅ Done |
 | P5.6 | Content oversight — conversation metadata (no message content, privacy), documents | ✅ Done |
 | P5.7 | Analytics — token usage charts, active users, top consumers (Recharts) | ✅ Done |
+| P5.8 | Theme persistence — sync theme with DB on login and settings change | ✅ Done |
 
-> **Privacy note:** Admins see conversation metadata only (title, date, count, tokens). Message content is never exposed to admins.
+---
+
+## Phase 6: Admin Panel Completion ⬅️ Current
+
+Complete the admin panel story with accountability, per-user control, and communication tools.
+
+| # | Item | Priority | Status |
+|---|------|----------|--------|
+| P6.1 | LLM model config — encrypted storage, in-memory cache, admin Models page | High | ✅ Done |
+| P6.2 | Audit logs — track admin actions (ban, delete, model change, role assign) | High | 🔲 Todo |
+| P6.3 | Token quota per user — admin overrides individual user daily quota | High | 🔲 Todo |
+| P6.4 | System announcements — admin broadcasts banner message to all users | Low | 🔲 Todo |
+
+---
+
+## Phase 7: Production Readiness
+
+Harden the platform before monetization and wider rollout.
+
+| # | Item | Priority | Status |
+|---|------|----------|--------|
+| P7.1 | Notifications — admin alerts (model key expired, quota breach) + user-facing | Medium | 🔲 Todo |
+| P7.2 | Email verification — confirm email before allowing login | Medium | 🔲 Todo |
+| P7.3 | Payment gateway (E4) — Stripe integration, plan tiers, model gating | Medium | 🔲 Todo |
+| P7.4 | Rate limiting — per-user request throttling at API level | Medium | 🔲 Todo |
+
+---
+
+## Phase 8: User Experience Polish
+
+Quality-of-life improvements based on real usage.
+
+| # | Item | Priority | Status |
+|---|------|----------|--------|
+| P8.1 | Conversation export — download as PDF or Markdown | Medium | 🔲 Todo |
+| P8.2 | Chat history search — full-text search inside message content | Medium | 🔲 Todo |
+| P8.3 | Model usage analytics — usage per model, cost estimation per provider | Low | 🔲 Todo |
+| P8.4 | Message feedback — thumbs up/down on AI responses | Low | 🔲 Todo |
+| P8.5 | Conversation sharing — public read-only link | Low | 🔲 Todo |
+| P8.6 | Document summarization — auto-summary on upload | Low | 🔲 Todo |
+| P8.7 | Two-factor authentication (2FA) — TOTP-based | Low | 🔲 Todo |
+| P8.8 | Code optimization — profile and optimize based on real usage data | Low | 🔲 Todo (last) |
 
 ---
 
@@ -197,34 +239,26 @@ LLM_MODEL=gemini/gemini-2.0-flash
 GEMINI_API_KEY=...
 VOYAGE_API_KEY=...
 DATABASE_URL=...
+SECRET_KEY=...
 ACCESS_TOKEN_EXPIRE_MINUTES=60
 REFRESH_TOKEN_EXPIRE_DAYS=7
 DEFAULT_DAILY_TOKEN_QUOTA=100000
+LLM_ENCRYPTION_KEY=...
 ```
 
 ---
 
-## Progress
+## Progress Summary
 
-**Current Status:** All 16 iterations complete. Working on enhancements before Phase 5.
-
-| Feature | Status |
-|---------|--------|
-| Project Setup + Auth UI | ✅ Done |
-| Auth Backend Integration | ✅ Done |
-| Auth Integration | ✅ Done |
-| Google OAuth | ✅ Done |
-| Chat UI | ✅ Done |
-| Chat Backend Integration | ✅ Done |
-| Token Management | ✅ Done |
-| Incognito Mode (real LLM) | ✅ Done |
-| Document Upload | ✅ Done |
-| Vector DB (pgvector + Voyage AI) | ✅ Done |
-| LLM Integration / RAG / Streaming | ✅ Done |
-| Dark Mode + Settings + Refresh Token | ✅ Done |
-| Enhancements E1–E7 | ✅ Done |
-| Phase 5: Admin Panel | ✅ Done |
+| Phase | Description | Status |
+|-------|-------------|--------|
+| Iterations 1–16 | Core chat, auth, documents, tokens, streaming | ✅ Done |
+| Enhancements E1–E7 | UI/UX bug fixes and improvements | ✅ Done |
+| Phase 5 | Admin panel — RBAC, users, roles, content, analytics, theme | ✅ Done |
+| Phase 6 | Admin panel completion — LLM config, audit logs, quotas, announcements | 🔄 In Progress |
+| Phase 7 | Production readiness — notifications, email, payments, rate limiting | 🔲 Todo |
+| Phase 8 | UX polish — export, search, feedback, sharing, 2FA, optimization | 🔲 Todo |
 
 ---
 
-**Last Updated:** Phase 5 Admin Panel complete (P5.1–P5.7). Next: E4 Payment gateway or new features.
+**Last Updated:** Phase 6 in progress — P6.1 (LLM model config) complete. Next: P6.2 Audit Logs.

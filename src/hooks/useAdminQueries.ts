@@ -1,6 +1,38 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminService, { type UsersPage, type ConversationsPage, type DocumentsPage } from '../services/adminService';
 import llmConfigService, { type LLMConfigCreate } from '../services/llmConfigService';
+import api from '../services/api';
+import { API_ENDPOINTS } from '../config/api';
+
+export interface AuditLogParams {
+  page: number;
+  limit?: number;
+  action?: string;
+  actor?: string;
+  target_type?: string;
+  date_from?: string;
+  date_to?: string;
+}
+
+export interface AuditLog {
+  id: number;
+  actor_id: number | null;
+  actor_name: string;
+  action: string;
+  target_type: string | null;
+  target_id: string | null;
+  target_label: string | null;
+  metadata: Record<string, unknown> | null;
+  created_at: string;
+}
+
+export interface AuditLogsPage {
+  total: number;
+  page: number;
+  limit: number;
+  pages: number;
+  logs: AuditLog[];
+}
 
 // ── Query keys ──────────────────────────────────────────────────────────────────
 
@@ -18,6 +50,7 @@ export const adminKeys = {
   topUsers:              ['admin', 'analytics', 'top-users'] as const,
   llmSupportedModels:    ['admin', 'llm', 'supported-models'] as const,
   llmSettings:           ['admin', 'llm', 'settings'] as const,
+  auditLogs:             (params: AuditLogParams) => ['admin', 'audit-logs', params] as const,
 };
 
 // ── Dashboard ───────────────────────────────────────────────────────────────────
@@ -250,5 +283,26 @@ export function useDeleteLLMConfig() {
   return useMutation({
     mutationFn: (id: number) => llmConfigService.deleteConfig(id),
     onSuccess: () => qc.invalidateQueries({ queryKey: adminKeys.llmSettings }),
+  });
+}
+
+// ── Audit Logs ──────────────────────────────────────────────────────────────────
+
+export function useAuditLogs(params: AuditLogParams) {
+  return useQuery({
+    queryKey: adminKeys.auditLogs(params),
+    queryFn: async (): Promise<AuditLogsPage> => {
+      const p = new URLSearchParams();
+      p.set('page',  String(params.page));
+      p.set('limit', String(params.limit ?? 20));
+      if (params.action)      p.set('action',      params.action);
+      if (params.actor)       p.set('actor',        params.actor);
+      if (params.target_type) p.set('target_type',  params.target_type);
+      if (params.date_from)   p.set('date_from',    params.date_from);
+      if (params.date_to)     p.set('date_to',      params.date_to);
+      const res = await api.get(`${API_ENDPOINTS.ADMIN_AUDIT_LOGS}?${p.toString()}`);
+      return res.data;
+    },
+    staleTime: 30_000,
   });
 }

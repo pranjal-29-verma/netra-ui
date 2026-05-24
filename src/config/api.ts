@@ -39,6 +39,9 @@ export const API_ENDPOINTS = {
   ADMIN_ANALYTICS_CONVERSATIONS: '/api/admin/analytics/conversations',
   ADMIN_ANALYTICS_TOP_USERS: '/api/admin/analytics/top-users',
 
+  // Audit log endpoints
+  ADMIN_AUDIT_LOGS: '/api/admin/audit-logs',
+
   // LLM Model Config endpoints
   ADMIN_LLM_SUPPORTED: '/api/admin/llm/supported-models',
   ADMIN_LLM_SETTINGS:  '/api/admin/llm/settings',

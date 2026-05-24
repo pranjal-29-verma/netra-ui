@@ -13,6 +13,7 @@ import {
   Settings,
   ChevronUp,
   Cpu,
+  ClipboardList,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
@@ -31,7 +32,8 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Roles',      to: '/admin/roles',    icon: <ShieldCheck className="w-4 h-4" />, permission: 'roles:assign' },
   { label: 'Content',    to: '/admin/content',  icon: <FileText className="w-4 h-4" />,    permission: 'conversations:read_meta' },
   { label: 'Analytics',  to: '/admin/analytics',icon: <BarChart2 className="w-4 h-4" />,   permission: 'analytics:view' },
-  { label: 'Models',     to: '/admin/models',   icon: <Cpu className="w-4 h-4" />,         permission: 'manage_models' },
+  { label: 'Models',     to: '/admin/models',      icon: <Cpu className="w-4 h-4" />,           permission: 'manage_models' },
+  { label: 'Audit Logs', to: '/admin/audit-logs', icon: <ClipboardList className="w-4 h-4" />, permission: 'audit:view' },
 ];
 
 interface AdminLayoutProps {

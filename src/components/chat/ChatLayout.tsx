@@ -127,7 +127,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
                   onClick={() => { navigate('/settings'); setMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors"
                 >
-                  <Settings className="w-4 h-4" />
+                  <Settings className="w-4 h-4 .//settings" />
                   Settings
                 </button>
                 <div className="border-t border-gray-100 dark:border-gray-600" />

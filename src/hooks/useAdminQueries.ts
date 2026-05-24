@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import adminService, { type UsersPage, type ConversationsPage, type DocumentsPage } from '../services/adminService';
+import llmConfigService, { type LLMConfigCreate } from '../services/llmConfigService';
 
 // ── Query keys ──────────────────────────────────────────────────────────────────
 
@@ -15,6 +16,8 @@ export const adminKeys = {
   registrationsTimeline: ['admin', 'analytics', 'registrations'] as const,
   conversationsTimeline: ['admin', 'analytics', 'conversations'] as const,
   topUsers:              ['admin', 'analytics', 'top-users'] as const,
+  llmSupportedModels:    ['admin', 'llm', 'supported-models'] as const,
+  llmSettings:           ['admin', 'llm', 'settings'] as const,
 };
 
 // ── Dashboard ───────────────────────────────────────────────────────────────────
@@ -183,5 +186,69 @@ export function useTopUsers() {
     queryKey: adminKeys.topUsers,
     queryFn: adminService.getTopUsers,
     staleTime: 5 * 60_000,
+  });
+}
+
+// ── LLM Model Config ────────────────────────────────────────────────────────────
+
+export function useLLMSupportedModels() {
+  return useQuery({
+    queryKey: adminKeys.llmSupportedModels,
+    queryFn:  llmConfigService.getSupportedModels,
+    staleTime: Infinity,
+  });
+}
+
+export function useLLMSettings() {
+  return useQuery({
+    queryKey: adminKeys.llmSettings,
+    queryFn:  llmConfigService.getSettings,
+    staleTime: 0,
+  });
+}
+
+export function useToggleLLMSource() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (use_custom_llm: boolean) => llmConfigService.toggleSource(use_custom_llm),
+    onSuccess: () => qc.invalidateQueries({ queryKey: adminKeys.llmSettings }),
+  });
+}
+
+export function useCreateLLMConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (payload: LLMConfigCreate) => llmConfigService.createConfig(payload),
+    onSuccess: () => qc.invalidateQueries({ queryKey: adminKeys.llmSettings }),
+  });
+}
+
+export function useTestLLMConfig() {
+  return useMutation({
+    mutationFn: (payload: LLMConfigCreate) => llmConfigService.testConfig(payload),
+  });
+}
+
+export function useActivateLLMConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => llmConfigService.activateConfig(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: adminKeys.llmSettings }),
+  });
+}
+
+export function useDeactivateLLMConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => llmConfigService.deactivateConfig(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: adminKeys.llmSettings }),
+  });
+}
+
+export function useDeleteLLMConfig() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number) => llmConfigService.deleteConfig(id),
+    onSuccess: () => qc.invalidateQueries({ queryKey: adminKeys.llmSettings }),
   });
 }

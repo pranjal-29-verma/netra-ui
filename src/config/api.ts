@@ -39,6 +39,16 @@ export const API_ENDPOINTS = {
   ADMIN_ANALYTICS_CONVERSATIONS: '/api/admin/analytics/conversations',
   ADMIN_ANALYTICS_TOP_USERS: '/api/admin/analytics/top-users',
 
+  // LLM Model Config endpoints
+  ADMIN_LLM_SUPPORTED: '/api/admin/llm/supported-models',
+  ADMIN_LLM_SETTINGS:  '/api/admin/llm/settings',
+  ADMIN_LLM_TOGGLE:    '/api/admin/llm/toggle',
+  ADMIN_LLM_CONFIGS:   '/api/admin/llm/configs',
+  ADMIN_LLM_CONFIG_TEST:       '/api/admin/llm/configs/test',
+  ADMIN_LLM_CONFIG_ACTIVATE:   (id: number) => `/api/admin/llm/configs/${id}/activate`,
+  ADMIN_LLM_CONFIG_DEACTIVATE: (id: number) => `/api/admin/llm/configs/${id}/deactivate`,
+  ADMIN_LLM_CONFIG_DELETE:     (id: number) => `/api/admin/llm/configs/${id}`,
+
   // Document endpoints
   DOCUMENTS: '/api/documents',
   DOCUMENT_UPLOAD: '/api/documents/upload',

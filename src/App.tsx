@@ -10,6 +10,7 @@ import { AdminRoles } from './pages/admin/AdminRoles';
 import { AdminContent } from './pages/admin/AdminContent';
 import { AdminAnalytics } from './pages/admin/AdminAnalytics';
 import { AdminModels } from './pages/admin/AdminModels';
+import { AdminAuditLogs } from './pages/admin/AdminAuditLogs';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { useAuthStore } from './store/authStore';
@@ -111,6 +112,7 @@ function App() {
                   <Route path="content" element={<AdminContent />} />
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="models" element={<AdminModels />} />
+                  <Route path="audit-logs" element={<AdminAuditLogs />} />
                 </Routes>
               </AdminLayout>
             </AdminRoute>

@@ -41,8 +41,13 @@ export const ChatArea: React.FC = () => {
       }
       await sendMessage(conversationId, content);
       qc.invalidateQueries({ queryKey: TOKEN_USAGE_KEY });
-    } catch {
-      toast.error('Failed to send message');
+    } catch (err: any) {
+      const msg: string = err?.message ?? '';
+      if (msg.toLowerCase().includes('auth') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('invalid')) {
+        toast.error('AI model is misconfigured. Please contact the admin to fix the model settings.');
+      } else {
+        toast.error('Failed to send message');
+      }
     }
   };
 

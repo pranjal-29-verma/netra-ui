@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Ban, Trash2, ChevronLeft, ChevronRight, X, ShieldOff, Shield, ShieldCheck, Loader2 } from 'lucide-react';
+import { Search, Ban, Trash2, ChevronLeft, ChevronRight, X, ShieldOff, Shield, ShieldCheck, Loader2, Gauge } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { AdminRole } from '../../services/adminService';
 import { avatarUrl } from '../../constants/avatars';
@@ -7,23 +7,26 @@ import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
 import {
   useAdminUsers, useAdminUser, useAdminRoles,
-  useToggleBan, useDeleteUser, useAssignRoles,
+  useToggleBan, useDeleteUser, useAssignRoles, useUpdateQuota,
 } from '../../hooks/useAdminQueries';
 
 function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => void }) {
   const { user: me } = useAuthStore();
-  const canBan    = hasPermission(me, 'users:ban');
-  const canDelete = hasPermission(me, 'users:delete');
-  const canAssign = hasPermission(me, 'roles:assign');
+  const canBan         = hasPermission(me, 'users:ban');
+  const canDelete      = hasPermission(me, 'users:delete');
+  const canAssign      = hasPermission(me, 'roles:assign');
+  const canManageQuota = hasPermission(me, 'users:manage_quota');
 
   const { data: user, isLoading } = useAdminUser(userId);
   const { data: allRoles = [], isLoading: rolesLoading } = useAdminRoles();
 
   const [selectedIds, setSelectedIds] = useState<Set<number> | null>(null);
+  const [quotaInput, setQuotaInput]   = useState<string>('');
 
   const toggleBan    = useToggleBan();
   const deleteUser   = useDeleteUser();
   const assignRoles  = useAssignRoles();
+  const updateQuota  = useUpdateQuota();
 
   // Initialise selectedIds from user data (once loaded)
   const resolvedIds = selectedIds ?? (user && allRoles.length
@@ -58,6 +61,20 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
       {
         onSuccess: () => toast.success('Roles updated'),
         onError: () => toast.error('Failed to update roles'),
+      },
+    );
+  };
+
+  const resolvedQuota = quotaInput !== '' ? quotaInput : String(user?.daily_quota ?? 100000);
+
+  const handleSaveQuota = () => {
+    const val = parseInt(resolvedQuota, 10);
+    if (isNaN(val) || val < 0) { toast.error('Enter a valid quota (≥ 0)'); return; }
+    updateQuota.mutate(
+      { userId, daily_quota: val },
+      {
+        onSuccess: () => toast.success('Quota updated'),
+        onError: () => toast.error('Failed to update quota'),
       },
     );
   };
@@ -169,6 +186,34 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                     {assignRoles.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                     {assignRoles.isPending ? 'Saving…' : 'Save Roles'}
                   </button>
+                </div>
+              )}
+
+              {/* Daily Token Quota */}
+              {canManageQuota && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Gauge className="w-4 h-4 text-gray-500 dark:text-gray-400" />
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Daily Token Quota</p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="number"
+                      min={0}
+                      value={resolvedQuota}
+                      onChange={(e) => setQuotaInput(e.target.value)}
+                      className="flex-1 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                    />
+                    <button
+                      onClick={handleSaveQuota}
+                      disabled={updateQuota.isPending}
+                      className="px-3 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-1.5"
+                    >
+                      {updateQuota.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                      {updateQuota.isPending ? 'Saving…' : 'Save'}
+                    </button>
+                  </div>
+                  <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Set to 0 to block token usage entirely.</p>
                 </div>
               )}
             </>

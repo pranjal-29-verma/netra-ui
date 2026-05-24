@@ -43,6 +43,7 @@ export interface AdminUser {
   total_tokens_used: number;
   documents?: number;
   messages?: number;
+  daily_quota: number;
 }
 
 export interface UsersPage {
@@ -83,6 +84,11 @@ const adminService = {
 
   deleteUser: async (id: number): Promise<void> => {
     await api.delete(API_ENDPOINTS.ADMIN_USER(id));
+  },
+
+  updateQuota: async (userId: number, daily_quota: number): Promise<{ user_id: number; daily_quota: number }> => {
+    const { data } = await api.patch(API_ENDPOINTS.ADMIN_USER_QUOTA(userId), { daily_quota });
+    return data;
   },
 
   getRoles: async (): Promise<AdminRole[]> => {

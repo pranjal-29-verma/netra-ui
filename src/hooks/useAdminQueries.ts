@@ -113,6 +113,17 @@ export function useDeleteUser() {
   });
 }
 
+export function useUpdateQuota() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ userId, daily_quota }: { userId: number; daily_quota: number }) =>
+      adminService.updateQuota(userId, daily_quota),
+    onSuccess: (_data, { userId }) => {
+      qc.invalidateQueries({ queryKey: adminKeys.user(userId) });
+    },
+  });
+}
+
 export function useAssignRoles() {
   const qc = useQueryClient();
   return useMutation({

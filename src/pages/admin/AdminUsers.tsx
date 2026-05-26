@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Ban, Trash2, ChevronLeft, ChevronRight, X, ShieldOff, Shield, ShieldCheck, Loader2, Gauge } from 'lucide-react';
+import { Search, Trash2, ChevronLeft, ChevronRight, X, UserX, UserCheck, ShieldCheck, Loader2, Gauge } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { AdminRole } from '../../services/adminService';
 import { avatarUrl } from '../../constants/avatars';
@@ -10,9 +10,39 @@ import {
   useToggleBan, useDeleteUser, useAssignRoles, useUpdateQuota,
 } from '../../hooks/useAdminQueries';
 
+// ── Skeleton row ───────────────────────────────────────────────────────────────
+
+function SkeletonRows() {
+  return (
+    <>
+      {Array.from({ length: 8 }).map((_, i) => (
+        <tr key={i} className="animate-pulse">
+          <td className="px-4 py-3">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700" />
+              <div className="space-y-1.5">
+                <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
+                <div className="h-2.5 bg-gray-100 dark:bg-gray-600 rounded w-32" />
+              </div>
+            </div>
+          </td>
+          {[...Array(4)].map((_, j) => (
+            <td key={j} className="px-4 py-3 align-middle">
+              <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
+            </td>
+          ))}
+          <td className="px-4 py-3" />
+        </tr>
+      ))}
+    </>
+  );
+}
+
+// ── User Detail Modal ──────────────────────────────────────────────────────────
+
 function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => void }) {
   const { user: me } = useAuthStore();
-  const canBan         = hasPermission(me, 'users:ban');
+  const canDeactivate  = hasPermission(me, 'users:ban');
   const canDelete      = hasPermission(me, 'users:delete');
   const canAssign      = hasPermission(me, 'roles:assign');
   const canManageQuota = hasPermission(me, 'users:manage_quota');
@@ -20,19 +50,21 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
   const { data: user, isLoading } = useAdminUser(userId);
   const { data: allRoles = [], isLoading: rolesLoading } = useAdminRoles();
 
+  // Track pending changes — null means unchanged
   const [selectedIds, setSelectedIds] = useState<Set<number> | null>(null);
   const [quotaInput, setQuotaInput]   = useState<string>('');
 
-  const toggleBan    = useToggleBan();
-  const deleteUser   = useDeleteUser();
-  const assignRoles  = useAssignRoles();
-  const updateQuota  = useUpdateQuota();
+  const toggleBan   = useToggleBan();
+  const deleteUser  = useDeleteUser();
+  const assignRoles = useAssignRoles();
+  const updateQuota = useUpdateQuota();
 
-  // Initialise selectedIds from user data (once loaded)
   const resolvedIds = selectedIds ?? (user && allRoles.length
     ? new Set(allRoles.filter((r: AdminRole) => user.roles.includes(r.name)).map((r: AdminRole) => r.id))
     : new Set<number>()
   );
+
+  const resolvedQuota = quotaInput !== '' ? quotaInput : String(user?.daily_quota ?? 100000);
 
   const toggleRole = (id: number) => {
     const next = new Set(resolvedIds);
@@ -40,9 +72,12 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
     setSelectedIds(next);
   };
 
-  const handleBan = () => {
+  const handleToggleStatus = () => {
     toggleBan.mutate(userId, {
-      onSuccess: (res) => { toast.success(res.is_active ? 'User unbanned' : 'User banned'); onClose(); },
+      onSuccess: (res) => {
+        toast.success(res.is_active ? 'User activated' : 'User deactivated');
+        onClose();
+      },
       onError: () => toast.error('Failed to update user status'),
     });
   };
@@ -55,28 +90,36 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
     });
   };
 
-  const handleSaveRoles = () => {
-    assignRoles.mutate(
-      { userId, roleIds: [...resolvedIds] },
-      {
-        onSuccess: () => toast.success('Roles updated'),
-        onError: () => toast.error('Failed to update roles'),
-      },
-    );
-  };
+  const isSaving = assignRoles.isPending || updateQuota.isPending;
+  const hasChanges = selectedIds !== null || quotaInput !== '';
 
-  const resolvedQuota = quotaInput !== '' ? quotaInput : String(user?.daily_quota ?? 100000);
+  const handleSaveChanges = async () => {
+    const promises: Promise<unknown>[] = [];
 
-  const handleSaveQuota = () => {
-    const val = parseInt(resolvedQuota, 10);
-    if (isNaN(val) || val < 0) { toast.error('Enter a valid quota (≥ 0)'); return; }
-    updateQuota.mutate(
-      { userId, daily_quota: val },
-      {
-        onSuccess: () => toast.success('Quota updated'),
-        onError: () => toast.error('Failed to update quota'),
-      },
-    );
+    if (selectedIds !== null) {
+      promises.push(
+        assignRoles.mutateAsync({ userId, roleIds: [...resolvedIds] })
+          .catch(() => { throw new Error('roles'); }),
+      );
+    }
+
+    if (quotaInput !== '') {
+      const val = parseInt(quotaInput, 10);
+      if (isNaN(val) || val < 0) { toast.error('Enter a valid quota (≥ 0)'); return; }
+      promises.push(
+        updateQuota.mutateAsync({ userId, daily_quota: val })
+          .catch(() => { throw new Error('quota'); }),
+      );
+    }
+
+    if (promises.length === 0) return;
+
+    try {
+      await Promise.all(promises);
+      toast.success('Changes saved');
+    } catch (err: any) {
+      toast.error(err.message === 'quota' ? 'Failed to update quota' : 'Failed to update roles');
+    }
   };
 
   return (
@@ -118,7 +161,7 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                     ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                     : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                 }`}>
-                  {user.is_active ? 'Active' : 'Banned'}
+                  {user.is_active ? 'Active' : 'Inactive'}
                 </span>
               </div>
 
@@ -178,14 +221,6 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                       ))}
                     </div>
                   )}
-                  <button
-                    onClick={handleSaveRoles}
-                    disabled={assignRoles.isPending}
-                    className="mt-3 w-full py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
-                  >
-                    {assignRoles.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                    {assignRoles.isPending ? 'Saving…' : 'Save Roles'}
-                  </button>
                 </div>
               )}
 
@@ -196,36 +231,38 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
                     <Gauge className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     <p className="text-sm font-medium text-gray-800 dark:text-gray-200">Daily Token Quota</p>
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="number"
-                      min={0}
-                      value={resolvedQuota}
-                      onChange={(e) => setQuotaInput(e.target.value)}
-                      className="flex-1 text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
-                    />
-                    <button
-                      onClick={handleSaveQuota}
-                      disabled={updateQuota.isPending}
-                      className="px-3 py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center gap-1.5"
-                    >
-                      {updateQuota.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                      {updateQuota.isPending ? 'Saving…' : 'Save'}
-                    </button>
-                  </div>
+                  <input
+                    type="number"
+                    min={0}
+                    value={resolvedQuota}
+                    onChange={(e) => setQuotaInput(e.target.value)}
+                    className="w-full text-sm bg-gray-50 dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded-lg px-3 py-2 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500"
+                  />
                   <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Set to 0 to block token usage entirely.</p>
                 </div>
+              )}
+
+              {/* Unified Save */}
+              {(canAssign || canManageQuota) && (
+                <button
+                  onClick={handleSaveChanges}
+                  disabled={isSaving || !hasChanges}
+                  className="w-full py-2 text-sm font-medium bg-primary-600 hover:bg-primary-700 disabled:opacity-50 text-white rounded-lg transition-colors flex items-center justify-center gap-2"
+                >
+                  {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  {isSaving ? 'Saving…' : 'Save Changes'}
+                </button>
               )}
             </>
           )}
         </div>
 
-        {/* Actions */}
+        {/* Actions footer — deactivate / delete */}
         {user && (
           <div className="flex gap-2 p-5 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
-            {canBan && (
+            {canDeactivate && (
               <button
-                onClick={handleBan}
+                onClick={handleToggleStatus}
                 disabled={toggleBan.isPending}
                 className={`flex-1 flex items-center justify-center gap-2 py-2 text-sm font-medium rounded-lg transition-colors disabled:opacity-50 ${
                   user.is_active
@@ -235,7 +272,9 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
               >
                 {toggleBan.isPending
                   ? <Loader2 className="w-4 h-4 animate-spin" />
-                  : user.is_active ? <><Ban className="w-4 h-4" /> Ban</> : <><Shield className="w-4 h-4" /> Unban</>
+                  : user.is_active
+                    ? <><UserX className="w-4 h-4" /> Deactivate</>
+                    : <><UserCheck className="w-4 h-4" /> Activate</>
                 }
               </button>
             )}
@@ -256,25 +295,29 @@ function UserDetailModal({ userId, onClose }: { userId: number; onClose: () => v
   );
 }
 
+// ── Admin Users Page ───────────────────────────────────────────────────────────
+
 export const AdminUsers: React.FC = () => {
   const { user: me } = useAuthStore();
-  const canBan    = hasPermission(me, 'users:ban');
-  const canDelete = hasPermission(me, 'users:delete');
+  const canDeactivate = hasPermission(me, 'users:ban');
+  const canDelete     = hasPermission(me, 'users:delete');
 
   const [page, setPage]     = useState(1);
   const [search, setSearch] = useState('');
   const [query, setQuery]   = useState('');
   const [selectedId, setSelectedId] = useState<number | null>(null);
 
-  const { data, isLoading } = useAdminUsers(page, query);
+  const { data, isLoading, isFetching } = useAdminUsers(page, query);
   const toggleBan  = useToggleBan();
   const deleteUser = useDeleteUser();
 
+  const showSkeleton = isLoading || isFetching;
+
   const handleSearch = (e: React.FormEvent) => { e.preventDefault(); setPage(1); setQuery(search); };
 
-  const handleBan = (id: number) => {
+  const handleToggleStatus = (id: number) => {
     toggleBan.mutate(id, {
-      onSuccess: (res) => toast.success(res.is_active ? 'User unbanned' : 'User banned'),
+      onSuccess: (res) => toast.success(res.is_active ? 'User activated' : 'User deactivated'),
       onError: () => toast.error('Failed to update user status'),
     });
   };
@@ -329,31 +372,13 @@ export const AdminUsers: React.FC = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
-              {isLoading ? (
-                Array.from({ length: 8 }).map((_, i) => (
-                  <tr key={i} className="animate-pulse">
-                    <td className="px-4 py-3">
-                      <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-full bg-gray-200 dark:bg-gray-700" />
-                        <div className="space-y-1.5">
-                          <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-24" />
-                          <div className="h-2.5 bg-gray-100 dark:bg-gray-600 rounded w-32" />
-                        </div>
-                      </div>
-                    </td>
-                    {[...Array(4)].map((_, j) => (
-                      <td key={j} className="px-4 py-3 align-middle">
-                        <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded w-16" />
-                      </td>
-                    ))}
-                    <td className="px-4 py-3" />
-                  </tr>
-                ))
+              {showSkeleton ? (
+                <SkeletonRows />
               ) : data?.users.length === 0 ? (
                 <tr><td colSpan={6} className="px-4 py-12 text-center text-gray-400">No users found.</td></tr>
               ) : (
                 data?.users.map((u) => {
-                  const isBanning  = toggleBan.isPending && toggleBan.variables === u.id;
+                  const isUpdating = toggleBan.isPending && toggleBan.variables === u.id;
                   const isDeleting = deleteUser.isPending && deleteUser.variables === u.id;
                   return (
                     <tr key={u.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors">
@@ -395,7 +420,7 @@ export const AdminUsers: React.FC = () => {
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400'
                             : 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400'
                         }`}>
-                          {u.is_active ? 'Active' : 'Banned'}
+                          {u.is_active ? 'Active' : 'Inactive'}
                         </span>
                       </td>
                       <td className="px-4 py-3 text-gray-600 dark:text-gray-400">{u.conversations}</td>
@@ -404,27 +429,27 @@ export const AdminUsers: React.FC = () => {
                       </td>
                       <td className="px-4 py-3">
                         <div className="flex items-center gap-1 justify-end">
-                          {canBan && (
+                          {canDeactivate && (
                             <button
-                              onClick={() => handleBan(u.id)}
-                              disabled={isBanning || isDeleting}
-                              title={u.is_active ? 'Ban user' : 'Unban user'}
+                              onClick={() => handleToggleStatus(u.id)}
+                              disabled={isUpdating || isDeleting}
+                              title={u.is_active ? 'Deactivate user' : 'Activate user'}
                               className={`p-1.5 rounded-lg transition-colors disabled:opacity-50 ${
                                 u.is_active
                                   ? 'text-yellow-500 hover:bg-yellow-50 dark:hover:bg-yellow-900/20'
                                   : 'text-green-500 hover:bg-green-50 dark:hover:bg-green-900/20'
                               }`}
                             >
-                              {isBanning
+                              {isUpdating
                                 ? <Loader2 className="w-4 h-4 animate-spin" />
-                                : u.is_active ? <Ban className="w-4 h-4" /> : <ShieldOff className="w-4 h-4" />
+                                : u.is_active ? <UserX className="w-4 h-4" /> : <UserCheck className="w-4 h-4" />
                               }
                             </button>
                           )}
                           {canDelete && (
                             <button
                               onClick={() => handleDelete(u.id)}
-                              disabled={isBanning || isDeleting}
+                              disabled={isUpdating || isDeleting}
                               title="Delete user"
                               className="p-1.5 text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors disabled:opacity-50"
                             >

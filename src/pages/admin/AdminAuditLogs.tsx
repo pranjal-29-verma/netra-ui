@@ -21,8 +21,8 @@ const ACTION_COLOURS: Record<string, string> = {
 };
 
 const ACTION_LABELS: Record<string, string> = {
-  'user.ban':               'User Banned',
-  'user.unban':             'User Unbanned',
+  'user.ban':               'User Deactivated',
+  'user.unban':             'User Activated',
   'user.delete':            'User Deleted',
   'user.quota_change':      'Quota Changed',
   'role.assign':            'Roles Assigned',

@@ -32,7 +32,7 @@ export function hasPermission(user: User | null, permission: string): boolean {
 
 export function isAdminUser(user: User | null): boolean {
   if (!user?.roles) return false;
-  return user.roles.some((role) => role.name === 'admin' || role.name === 'moderator');
+  return user.roles.some((role) => role.permissions.length > 0);
 }
 
 export interface AuthState {

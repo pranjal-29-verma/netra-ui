@@ -19,6 +19,7 @@ export const LoginForm: React.FC = () => {
 
   const [errors, setErrors] = useState<Partial<LoginCredentials>>({});
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -128,22 +129,31 @@ export const LoginForm: React.FC = () => {
         </div>
 
         <div className="mt-4 flex justify-center">
-          <GoogleLogin
-            onSuccess={async (response) => {
-              if (!response.credential) return;
-              try {
-                await loginWithGoogle(response.credential);
-                toast.success('Welcome!');
-                navigate('/dashboard');
-              } catch (error: any) {
-                toast.error(error.message || 'Google login failed');
-              }
-            }}
-            onError={() => toast.error('Google login failed')}
-            width="100%"
-            text="continue_with"
-            shape="rectangular"
-          />
+          {googleLoading ? (
+            <div className="w-full flex items-center justify-center gap-2 py-2.5 px-4 border border-gray-300 rounded text-sm text-gray-600 bg-white">
+              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+              Signing in with Google…
+            </div>
+          ) : (
+            <GoogleLogin
+              onSuccess={async (response) => {
+                if (!response.credential) return;
+                setGoogleLoading(true);
+                try {
+                  await loginWithGoogle(response.credential);
+                  toast.success('Welcome!');
+                  navigate('/dashboard');
+                } catch (error: any) {
+                  toast.error(error.message || 'Google login failed');
+                  setGoogleLoading(false);
+                }
+              }}
+              onError={() => toast.error('Google login failed')}
+              width="100%"
+              text="continue_with"
+              shape="rectangular"
+            />
+          )}
         </div>
       </div>
     </form>

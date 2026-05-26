@@ -1,5 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, EyeOff, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useLayoutEffect, useRef, useCallback } from 'react';
+import { MessageSquare, EyeOff, Sparkles, Loader2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { Message } from './Message';
 import { MessageSkeleton } from './MessageSkeleton';
@@ -17,18 +17,65 @@ function getGreeting(name: string): string {
 }
 
 export const ChatArea: React.FC = () => {
-  const { currentConversation, messages, isLoading, isLoadingMessages, isStreaming, sendMessage, stopStreaming, createConversation, fetchMessages, isIncognito } = useChatStore();
+  const {
+    currentConversation, messages, isLoading, isLoadingMessages,
+    isStreaming, isIncognito, hasMoreMessages, isLoadingMoreMessages,
+    sendMessage, stopStreaming, createConversation, fetchMessages, loadMoreMessages,
+  } = useChatStore();
+
   const { data: usage } = useTokenUsage();
   const qc = useQueryClient();
   const { user } = useAuthStore();
   const [docPanelOpen, setDocPanelOpen] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  const scrollAreaRef       = useRef<HTMLDivElement>(null);
+  const messagesEndRef      = useRef<HTMLDivElement>(null);
+  const topSentinelRef      = useRef<HTMLDivElement>(null);
+  const prevScrollHeightRef = useRef(0);   // non-zero = restore mode after prepend
+  const prevMsgCountRef     = useRef(0);   // tracks previous render's message count
 
   const isQuotaExhausted = usage ? usage.usage_percentage >= 100 : false;
+
+  // Scroll to bottom OR restore position after prepend — runs after DOM paint
+  useLayoutEffect(() => {
+    const prevCount = prevMsgCountRef.current;
+    const newCount  = messages.length;
+    prevMsgCountRef.current = newCount;
+
+    if (prevScrollHeightRef.current > 0 && scrollAreaRef.current) {
+      // Older messages prepended → restore visual scroll position, no jump
+      scrollAreaRef.current.scrollTop =
+        scrollAreaRef.current.scrollHeight - prevScrollHeightRef.current;
+      prevScrollHeightRef.current = 0;
+    } else if (prevCount === 0 && newCount > 0) {
+      // Initial load / conversation switch → jump instantly to latest message
+      messagesEndRef.current?.scrollIntoView({ behavior: 'instant' });
+    } else if (newCount > prevCount) {
+      // New message appended during chat → smooth scroll
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
+
+  // Load older messages when user scrolls to the top sentinel
+  const handleLoadMore = useCallback(() => {
+    if (!currentConversation || !hasMoreMessages || isLoadingMoreMessages) return;
+    if (scrollAreaRef.current) {
+      prevScrollHeightRef.current = scrollAreaRef.current.scrollHeight;
+    }
+    loadMoreMessages(currentConversation.id);
+  }, [currentConversation, hasMoreMessages, isLoadingMoreMessages, loadMoreMessages]);
+
+  useEffect(() => {
+    const sentinel = topSentinelRef.current;
+    if (!sentinel || !hasMoreMessages) return;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => { if (entry.isIntersecting) handleLoadMore(); },
+      { threshold: 0.1 },
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMoreMessages, handleLoadMore]);
 
   const handleSendMessage = async (content: string) => {
     if (isQuotaExhausted) return;
@@ -65,7 +112,7 @@ export const ChatArea: React.FC = () => {
         )}
 
         {/* Main content area */}
-        <div className="flex-1 overflow-y-auto px-4 py-6 bg-gray-50 dark:bg-gray-900">
+        <div ref={scrollAreaRef} className="flex-1 overflow-y-auto px-4 py-6 bg-gray-50 dark:bg-gray-900">
           <div className="max-w-4xl mx-auto">
             {!currentConversation ? (
               <div className="flex flex-col items-center justify-center h-full min-h-96 text-center px-4">
@@ -111,7 +158,26 @@ export const ChatArea: React.FC = () => {
                 </p>
               </div>
             ) : (
-              messages.map((message) => <Message key={message.id} message={message} />)
+              <>
+                {/* Top sentinel — triggers loading older messages */}
+                <div ref={topSentinelRef} className="h-1" />
+
+                {/* Loading older messages indicator */}
+                {isLoadingMoreMessages && (
+                  <div className="flex justify-center py-3">
+                    <Loader2 className="w-4 h-4 animate-spin text-gray-400" />
+                  </div>
+                )}
+
+                {/* "All caught up" marker */}
+                {!hasMoreMessages && messages.length > 0 && (
+                  <p className="text-center text-xs text-gray-300 dark:text-gray-600 py-2 mb-2">
+                    Beginning of conversation
+                  </p>
+                )}
+
+                {messages.map((message) => <Message key={message.id} message={message} />)}
+              </>
             )}
             <div ref={messagesEndRef} />
           </div>

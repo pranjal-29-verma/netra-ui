@@ -35,6 +35,8 @@ export const useChatStore = create<ChatState>((set, get) => ({
   conversationOffset: 0,
   isStreaming: false,
   isIncognito: false,
+  hasMoreMessages: false,
+  isLoadingMoreMessages: false,
 
   setConversations: (conversations: Conversation[]) => set({ conversations }),
 
@@ -146,12 +148,32 @@ export const useChatStore = create<ChatState>((set, get) => ({
     // Negative ID = incognito — messages already live in state, nothing to fetch
     if (conversationId < 0) return;
 
-    set({ isLoadingMessages: true, messages: [] });
+    set({ isLoadingMessages: true, messages: [], hasMoreMessages: false });
     try {
-      const messages = await chatService.getMessages(conversationId);
-      set({ messages });
+      const messages = await chatService.getMessages(conversationId, { limit: 10 });
+      set({ messages, hasMoreMessages: messages.length === 10 });
     } finally {
       set({ isLoadingMessages: false });
+    }
+  },
+
+  loadMoreMessages: async (conversationId: number) => {
+    const { isLoadingMoreMessages, hasMoreMessages, messages } = get();
+    if (isLoadingMoreMessages || !hasMoreMessages) return;
+
+    // Use the smallest real (positive) message id as the cursor
+    const oldestId = messages.find((m) => m.id > 0)?.id;
+    if (!oldestId) return;
+
+    set({ isLoadingMoreMessages: true });
+    try {
+      const older = await chatService.getMessages(conversationId, { limit: 10, before_id: oldestId });
+      set((state) => ({
+        messages: [...older, ...state.messages],
+        hasMoreMessages: older.length === 10,
+      }));
+    } finally {
+      set({ isLoadingMoreMessages: false });
     }
   },
 

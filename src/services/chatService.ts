@@ -27,8 +27,8 @@ const chatService = {
     await api.delete(API_ENDPOINTS.CONVERSATION(id));
   },
 
-  async getMessages(conversationId: number): Promise<Message[]> {
-    const response = await api.get<Message[]>(API_ENDPOINTS.MESSAGES(conversationId));
+  async getMessages(conversationId: number, params?: { limit?: number; before_id?: number }): Promise<Message[]> {
+    const response = await api.get<Message[]>(API_ENDPOINTS.MESSAGES(conversationId), { params });
     return response.data;
   },
 

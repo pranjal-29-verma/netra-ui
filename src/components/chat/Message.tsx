@@ -10,6 +10,14 @@ interface MessageProps {
   message: MessageType;
 }
 
+function getDomain(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '');
+  } catch {
+    return url;
+  }
+}
+
 export const Message: React.FC<MessageProps> = ({ message }) => {
   const [copied, setCopied] = React.useState(false);
   const user = useAuthStore((state) => state.user);
@@ -62,7 +70,21 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
 
             {isUser ? (
               <p className="text-sm leading-relaxed whitespace-pre-wrap m-0">{message.content}</p>
+            ) : message.isStreaming && !message.content ? (
+              // Thinking indicator — no content yet
+              <span className="flex items-center gap-1 py-1">
+                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
+                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
+                <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
+              </span>
+            ) : message.isStreaming ? (
+              // Plain text during streaming — avoids expensive ReactMarkdown re-parse on every chunk
+              <p className="text-sm leading-relaxed whitespace-pre-wrap m-0">
+                {message.content}
+                <span className="inline-block w-2 h-4 bg-gray-500 animate-pulse ml-0.5 rounded-sm align-middle" />
+              </p>
             ) : (
+              // Fully streamed — render with Markdown
               <div className={`prose prose-sm max-w-none
                 prose-p:my-1 prose-p:leading-relaxed
                 prose-headings:mt-3 prose-headings:mb-1
@@ -71,22 +93,9 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                 prose-code:text-xs
                 prose-pre:my-2
                 dark:prose-invert`}>
-                {message.isStreaming && !message.content ? (
-                  <span className="flex items-center gap-1 py-1">
-                    <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:0ms]" />
-                    <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:150ms]" />
-                    <span className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce [animation-delay:300ms]" />
-                  </span>
-                ) : (
-                  <>
-                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                      {message.content || ' '}
-                    </ReactMarkdown>
-                    {message.isStreaming && (
-                      <span className="inline-block w-2 h-4 bg-gray-500 animate-pulse ml-0.5 rounded-sm align-middle" />
-                    )}
-                  </>
-                )}
+                <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                  {message.content || ' '}
+                </ReactMarkdown>
               </div>
             )}
 
@@ -132,7 +141,7 @@ export const Message: React.FC<MessageProps> = ({ message }) => {
                     title={src.source_url}
                   >
                     <Globe className="w-3 h-3 flex-shrink-0" />
-                    <span className="max-w-32 truncate">{src.filename}</span>
+                    <span className="max-w-32 truncate">{getDomain(src.source_url)}</span>
                   </a>
                 ) : (
                   <span

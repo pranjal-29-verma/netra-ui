@@ -139,6 +139,8 @@ export interface ChatState {
   conversationOffset: number;
   isStreaming: boolean;
   isIncognito: boolean;
+  hasMoreMessages: boolean;
+  isLoadingMoreMessages: boolean;
   setConversations: (conversations: Conversation[]) => void;
   setCurrentConversation: (conversation: Conversation | null) => void;
   addMessage: (message: Message) => void;
@@ -151,6 +153,7 @@ export interface ChatState {
   createConversation: () => Promise<Conversation>;
   deleteConversation: (id: number) => Promise<void>;
   fetchMessages: (conversationId: number) => Promise<void>;
+  loadMoreMessages: (conversationId: number) => Promise<void>;
   sendMessage: (conversationId: number, content: string) => Promise<void>;
   stopStreaming: () => void;
 }

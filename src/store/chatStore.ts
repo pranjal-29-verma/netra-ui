@@ -210,6 +210,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
           },
         );
 
+        if (response.status === 429) throw new Error('Too many requests. Please slow down and try again shortly.');
         if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
         const reader = response.body!.getReader();

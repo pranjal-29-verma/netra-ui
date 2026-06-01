@@ -92,8 +92,10 @@ export const ChatArea: React.FC = () => {
       const msg: string = err?.message ?? '';
       if (msg.toLowerCase().includes('auth') || msg.toLowerCase().includes('api key') || msg.toLowerCase().includes('invalid')) {
         toast.error('AI model is misconfigured. Please contact the admin to fix the model settings.');
+      } else if (msg.toLowerCase().includes('too many requests') || msg.toLowerCase().includes('rate limit')) {
+        toast.error(msg);
       } else {
-        toast.error('Failed to send message');
+        toast.error(msg || 'Failed to send message');
       }
     }
   };

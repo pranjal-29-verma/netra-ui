@@ -89,6 +89,10 @@ api.interceptors.response.use(
       }
     }
 
+    if (error.response?.status === 429) {
+      const detail = error.response.data?.detail ?? 'Too many requests. Please slow down and try again shortly.';
+      return Promise.reject(new Error(detail));
+    }
     if (error.response?.status === 403) console.error('Forbidden:', error.response.data?.detail);
     if (error.response?.status === 500) console.error('Server error:', error.response.data?.detail);
     if (!error.response) console.error('Network error: Unable to reach server');

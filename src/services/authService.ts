@@ -88,6 +88,14 @@ class AuthService {
   getAccessToken(): string | null {
     return localStorage.getItem('access_token');
   }
+
+  async verifyEmail(token: string): Promise<void> {
+    await api.get(API_ENDPOINTS.VERIFY_EMAIL, { params: { token } });
+  }
+
+  async resendVerification(email: string): Promise<void> {
+    await api.post(API_ENDPOINTS.RESEND_VERIFICATION, { email });
+  }
 }
 
 export default new AuthService();

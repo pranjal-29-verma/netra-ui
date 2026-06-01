@@ -6,6 +6,8 @@ export const API_ENDPOINTS = {
   LOGIN: '/api/auth/login',
   GOOGLE_AUTH: '/api/auth/google',
   ME: '/api/auth/me',
+  VERIFY_EMAIL: '/api/auth/verify-email',
+  RESEND_VERIFICATION: '/api/auth/resend-verification',
 
   // Conversation endpoints
   CONVERSATIONS: '/api/conversations',

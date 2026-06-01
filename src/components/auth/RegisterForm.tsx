@@ -1,14 +1,19 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
+import { Mail, RefreshCw } from 'lucide-react';
 import { Input } from '../common/Input';
 import { Button } from '../common/Button';
 import { useAuthStore } from '../../store/authStore';
+import authService from '../../services/authService';
 import type { RegisterCredentials } from '../../types';
 
 export const RegisterForm: React.FC = () => {
   const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
+
+  const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);
+  const [resending, setResending] = useState(false);
 
   const [formData, setFormData] = useState<RegisterCredentials>({
     username: '',
@@ -70,8 +75,7 @@ export const RegisterForm: React.FC = () => {
     setLoading(true);
     try {
       await register(formData.username, formData.email, formData.password, formData.gender);
-      toast.success('Account created successfully! Please login.');
-      navigate('/login');
+      setRegisteredEmail(formData.email);
     } catch (error: any) {
       console.error('Registration error:', error);
       const errorMessage = error.message || 'Registration failed';
@@ -89,6 +93,53 @@ export const RegisterForm: React.FC = () => {
       setLoading(false);
     }
   };
+
+  const handleResend = async () => {
+    if (!registeredEmail) return;
+    setResending(true);
+    try {
+      await authService.resendVerification(registeredEmail);
+      toast.success('Verification email resent!');
+    } catch {
+      toast.error('Failed to resend. Try again in a moment.');
+    } finally {
+      setResending(false);
+    }
+  };
+
+  if (registeredEmail) {
+    return (
+      <div className="text-center py-4">
+        <div className="flex justify-center mb-4">
+          <div className="w-16 h-16 bg-primary-50 dark:bg-primary-900/20 rounded-full flex items-center justify-center">
+            <Mail className="w-8 h-8 text-primary-600" />
+          </div>
+        </div>
+        <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Check your email</h3>
+        <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">
+          We sent a verification link to
+        </p>
+        <p className="text-sm font-medium text-gray-800 dark:text-gray-200 mb-6">{registeredEmail}</p>
+        <p className="text-xs text-gray-400 dark:text-gray-500 mb-4">
+          Click the link in the email to activate your account. The link expires in 24 hours.
+        </p>
+        <button
+          type="button"
+          onClick={handleResend}
+          disabled={resending}
+          className="inline-flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 disabled:opacity-50"
+        >
+          <RefreshCw className={`w-3.5 h-3.5 ${resending ? 'animate-spin' : ''}`} />
+          {resending ? 'Sending…' : 'Resend email'}
+        </button>
+        <div className="mt-6 pt-6 border-t border-gray-100 dark:border-gray-700">
+          <Link to="/login" className="text-sm text-gray-500 dark:text-gray-400 hover:text-primary-600">
+            Back to login
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit}>

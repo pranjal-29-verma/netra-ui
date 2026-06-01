@@ -22,6 +22,7 @@ export interface User {
   save_conversations?: boolean;
   theme?: 'light' | 'dark' | 'system';
   googleId?: string;
+  is_verified?: boolean;
   roles?: Role[];
 }
 
@@ -46,6 +47,7 @@ export interface AuthState {
   setUser: (user: User, token: string) => void;
   setToken: (token: string) => void;
   updateUser: (user: User) => void;
+  refreshUser: () => Promise<void>;
 }
 
 export interface LoginCredentials {

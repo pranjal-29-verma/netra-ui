@@ -65,6 +65,15 @@ export const useAuthStore = create<AuthState>()(
         set({ user });
       },
 
+      refreshUser: async () => {
+        try {
+          const user = await authService.getCurrentUser();
+          set({ user });
+        } catch {
+          // silently ignore — stale data is better than logging the user out
+        }
+      },
+
       logout: () => {
         authService.logout();
         set({ user: null, token: null, isAuthenticated: false });

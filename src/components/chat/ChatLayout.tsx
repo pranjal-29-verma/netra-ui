@@ -64,7 +64,7 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
 
   return (
     <SidebarContext.Provider value={{ close: closeSidebar, isMobile }}>
-      <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden">
+      <div className="flex h-full bg-gray-50 dark:bg-gray-900 overflow-hidden">
 
         {/* Mobile backdrop */}
         {isMobile && sidebarOpen && (

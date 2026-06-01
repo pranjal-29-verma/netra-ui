@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Login } from './pages/Login';
 import { Register } from './pages/Register';
+import { VerifyEmail } from './pages/VerifyEmail';
 import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
@@ -64,6 +65,14 @@ function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Re-fetch user profile on startup to sync any server-side changes (e.g. is_verified)
+  useEffect(() => {
+    if (isAuthenticated) {
+      useAuthStore.getState().refreshUser();
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -118,6 +127,9 @@ function App() {
             </AdminRoute>
           }
         />
+
+        {/* Email verification — accessible without auth, even when logged in */}
+        <Route path="/verify-email" element={<VerifyEmail />} />
 
         <Route path="/" element={<Navigate to="/dashboard" replace />} />
         <Route path="*" element={<Navigate to="/login" replace />} />

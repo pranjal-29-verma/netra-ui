@@ -55,6 +55,22 @@ export const API_ENDPOINTS = {
   ADMIN_LLM_CONFIG_DEACTIVATE: (id: number) => `/api/admin/llm/configs/${id}/deactivate`,
   ADMIN_LLM_CONFIG_DELETE:     (id: number) => `/api/admin/llm/configs/${id}`,
 
+  // Admin billing endpoints
+  ADMIN_BILLING_PLANS: '/api/admin/billing/plans',
+  ADMIN_BILLING_PLAN: (id: number) => `/api/admin/billing/plans/${id}`,
+  ADMIN_BILLING_PLAN_TOGGLE: (id: number) => `/api/admin/billing/plans/${id}/toggle`,
+  ADMIN_BILLING_PACKS: '/api/admin/billing/packs',
+  ADMIN_BILLING_PACK: (id: number) => `/api/admin/billing/packs/${id}`,
+  ADMIN_BILLING_PACK_TOGGLE: (id: number) => `/api/admin/billing/packs/${id}/toggle`,
+  ADMIN_BILLING_SUBSCRIPTIONS: '/api/admin/billing/subscriptions',
+
+  // Billing endpoints
+  BILLING_PLANS: '/api/billing/plans',
+  BILLING_PACKS: '/api/billing/packs',
+  BILLING_CREATE_ORDER: '/api/billing/create-order',
+  BILLING_VERIFY: '/api/billing/verify-payment',
+  BILLING_SUMMARY: '/api/billing/summary',
+
   // Document endpoints
   DOCUMENTS: '/api/documents',
   DOCUMENT_UPLOAD: '/api/documents/upload',

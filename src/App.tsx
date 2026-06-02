@@ -5,6 +5,8 @@ import { Register } from './pages/Register';
 import { VerifyEmail } from './pages/VerifyEmail';
 import { Dashboard } from './pages/Dashboard';
 import { Settings } from './pages/Settings';
+import { Pricing } from './pages/Pricing';
+import { Billing } from './pages/Billing';
 import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminUsers } from './pages/admin/AdminUsers';
 import { AdminRoles } from './pages/admin/AdminRoles';
@@ -12,6 +14,7 @@ import { AdminContent } from './pages/admin/AdminContent';
 import { AdminAnalytics } from './pages/admin/AdminAnalytics';
 import { AdminModels } from './pages/admin/AdminModels';
 import { AdminAuditLogs } from './pages/admin/AdminAuditLogs';
+import { AdminBilling } from './pages/admin/AdminBilling';
 import { AdminLayout } from './components/admin/AdminLayout';
 import { AdminRoute } from './components/admin/AdminRoute';
 import { useAuthStore } from './store/authStore';
@@ -122,11 +125,18 @@ function App() {
                   <Route path="analytics" element={<AdminAnalytics />} />
                   <Route path="models" element={<AdminModels />} />
                   <Route path="audit-logs" element={<AdminAuditLogs />} />
+                  <Route path="billing" element={<AdminBilling />} />
                 </Routes>
               </AdminLayout>
             </AdminRoute>
           }
         />
+
+        {/* Pricing — public */}
+        <Route path="/pricing" element={<Pricing />} />
+
+        {/* Billing — protected */}
+        <Route path="/billing" element={<ProtectedRoute><Billing /></ProtectedRoute>} />
 
         {/* Email verification — accessible without auth, even when logged in */}
         <Route path="/verify-email" element={<VerifyEmail />} />

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, createContext, useContext } from 'react';
-import { MessageSquare, Menu, X, LogOut, Settings, ShieldCheck, ChevronUp, EyeOff } from 'lucide-react';
+import { MessageSquare, Menu, X, LogOut, Settings, ShieldCheck, ChevronUp, EyeOff, CreditCard } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../../store/authStore';
 import { avatarUrl } from '../../constants/avatars';
@@ -124,10 +124,17 @@ export const ChatLayout: React.FC<ChatLayoutProps> = ({ children, sidebar }) => 
                   </button>
                 )}
                 <button
+                  onClick={() => { navigate('/billing'); setMenuOpen(false); }}
+                  className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors"
+                >
+                  <CreditCard className="w-4 h-4" />
+                  Billing
+                </button>
+                <button
                   onClick={() => { navigate('/settings'); setMenuOpen(false); }}
                   className="w-full flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600/50 transition-colors"
                 >
-                  <Settings className="w-4 h-4 .//settings" />
+                  <Settings className="w-4 h-4" />
                   Settings
                 </button>
                 <div className="border-t border-gray-100 dark:border-gray-600" />

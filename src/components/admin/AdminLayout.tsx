@@ -14,6 +14,7 @@ import {
   ChevronUp,
   Cpu,
   ClipboardList,
+  CreditCard,
 } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
 import { hasPermission } from '../../types';
@@ -34,6 +35,7 @@ const NAV_ITEMS: NavItem[] = [
   { label: 'Analytics',  to: '/admin/analytics',icon: <BarChart2 className="w-4 h-4" />,   permission: 'analytics:view' },
   { label: 'Models',     to: '/admin/models',      icon: <Cpu className="w-4 h-4" />,           permission: 'manage_models' },
   { label: 'Audit Logs', to: '/admin/audit-logs', icon: <ClipboardList className="w-4 h-4" />, permission: 'audit:view' },
+  { label: 'Billing',    to: '/admin/billing',    icon: <CreditCard className="w-4 h-4" />,    permission: 'system:config' },
 ];
 
 interface AdminLayoutProps {

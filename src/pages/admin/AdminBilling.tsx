@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import toast from 'react-hot-toast';
-import { Plus, Pencil, Power, Zap, Package, CreditCard, Loader2, X } from 'lucide-react';
+import { Plus, Pencil, Power, Zap, Package, CreditCard, Loader2, X, RefreshCw } from 'lucide-react';
 import api from '../../services/api';
 import { API_ENDPOINTS } from '../../config/api';
 
@@ -47,6 +47,8 @@ export const AdminBilling: React.FC = () => {
   const [packs, setPacks] = useState<TokenPack[]>([]);
   const [subs, setSubs] = useState<Subscription[]>([]);
   const [loading, setLoading] = useState(true);
+  const [togglingPlanId, setTogglingPlanId] = useState<number | null>(null);
+  const [togglingPackId, setTogglingPackId] = useState<number | null>(null);
 
   // Plan modal
   const [planModal, setPlanModal] = useState(false);
@@ -60,25 +62,38 @@ export const AdminBilling: React.FC = () => {
   const [packForm, setPackForm] = useState(emptyPack);
   const [packSaving, setPackSaving] = useState(false);
 
-  const fetchAll = async () => {
-    setLoading(true);
+  const fetchPlans = async () => {
     try {
-      const [p, pk, s] = await Promise.all([
-        api.get(API_ENDPOINTS.ADMIN_BILLING_PLANS),
-        api.get(API_ENDPOINTS.ADMIN_BILLING_PACKS),
-        api.get(API_ENDPOINTS.ADMIN_BILLING_SUBSCRIPTIONS),
-      ]);
-      setPlans(p.data);
-      setPacks(pk.data);
-      setSubs(s.data.subscriptions);
+      const res = await api.get(API_ENDPOINTS.ADMIN_BILLING_PLANS);
+      setPlans(res.data);
     } catch {
-      toast.error('Failed to load billing data');
-    } finally {
-      setLoading(false);
+      toast.error('Failed to load plans');
     }
   };
 
-  useEffect(() => { fetchAll(); }, []);
+  const fetchPacks = async () => {
+    try {
+      const res = await api.get(API_ENDPOINTS.ADMIN_BILLING_PACKS);
+      setPacks(res.data);
+    } catch {
+      toast.error('Failed to load packs');
+    }
+  };
+
+  const fetchSubs = async () => {
+    try {
+      const res = await api.get(API_ENDPOINTS.ADMIN_BILLING_SUBSCRIPTIONS);
+      setSubs(res.data.subscriptions);
+    } catch {
+      toast.error('Failed to load subscriptions');
+    }
+  };
+
+  // Initial load — fetch all tabs at once
+  useEffect(() => {
+    setLoading(true);
+    Promise.all([fetchPlans(), fetchPacks(), fetchSubs()]).finally(() => setLoading(false));
+  }, []);
 
   // ── Plans ──────────────────────────────────────────────────────────────────
   const openCreatePlan = () => { setEditingPlan(null); setPlanForm(emptyPlan); setPlanModal(true); };
@@ -95,7 +110,7 @@ export const AdminBilling: React.FC = () => {
         toast.success('Plan created');
       }
       setPlanModal(false);
-      fetchAll();
+      fetchPlans();   // only plans tab affected
     } catch (e: any) {
       toast.error(e?.message || 'Failed to save plan');
     } finally {
@@ -104,8 +119,13 @@ export const AdminBilling: React.FC = () => {
   };
 
   const togglePlan = async (id: number) => {
-    await api.patch(API_ENDPOINTS.ADMIN_BILLING_PLAN_TOGGLE(id));
-    fetchAll();
+    setTogglingPlanId(id);
+    try {
+      await api.patch(API_ENDPOINTS.ADMIN_BILLING_PLAN_TOGGLE(id));
+      fetchPlans();   // only plans tab affected
+    } finally {
+      setTogglingPlanId(null);
+    }
   };
 
   // ── Packs ──────────────────────────────────────────────────────────────────
@@ -123,7 +143,7 @@ export const AdminBilling: React.FC = () => {
         toast.success('Pack created');
       }
       setPackModal(false);
-      fetchAll();
+      fetchPacks();   // only packs tab affected
     } catch (e: any) {
       toast.error(e?.message || 'Failed to save pack');
     } finally {
@@ -132,8 +152,13 @@ export const AdminBilling: React.FC = () => {
   };
 
   const togglePack = async (id: number) => {
-    await api.patch(API_ENDPOINTS.ADMIN_BILLING_PACK_TOGGLE(id));
-    fetchAll();
+    setTogglingPackId(id);
+    try {
+      await api.patch(API_ENDPOINTS.ADMIN_BILLING_PACK_TOGGLE(id));
+      fetchPacks();   // only packs tab affected
+    } finally {
+      setTogglingPackId(null);
+    }
   };
 
   const inputCls = 'w-full px-3 py-2 text-sm rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-primary-500';
@@ -191,7 +216,16 @@ export const AdminBilling: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button onClick={() => openEditPlan(plan)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => togglePlan(plan.id)} className={`p-2 rounded-lg transition-colors ${plan.is_active ? 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500' : 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500'}`} title={plan.is_active ? 'Disable' : 'Enable'}><Power className="w-4 h-4" /></button>
+                      <button
+                        onClick={() => togglePlan(plan.id)}
+                        disabled={togglingPlanId === plan.id}
+                        className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${plan.is_active ? 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500' : 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500'}`}
+                        title={plan.is_active ? 'Disable' : 'Enable'}
+                      >
+                        {togglingPlanId === plan.id
+                          ? <RefreshCw className="w-4 h-4 animate-spin" />
+                          : <Power className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -227,7 +261,16 @@ export const AdminBilling: React.FC = () => {
                     </div>
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <button onClick={() => openEditPack(pack)} className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 transition-colors" title="Edit"><Pencil className="w-4 h-4" /></button>
-                      <button onClick={() => togglePack(pack.id)} className={`p-2 rounded-lg transition-colors ${pack.is_active ? 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500' : 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500'}`} title={pack.is_active ? 'Disable' : 'Enable'}><Power className="w-4 h-4" /></button>
+                      <button
+                        onClick={() => togglePack(pack.id)}
+                        disabled={togglingPackId === pack.id}
+                        className={`p-2 rounded-lg transition-colors disabled:opacity-50 ${pack.is_active ? 'hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500' : 'hover:bg-green-50 dark:hover:bg-green-900/20 text-green-500'}`}
+                        title={pack.is_active ? 'Disable' : 'Enable'}
+                      >
+                        {togglingPackId === pack.id
+                          ? <RefreshCw className="w-4 h-4 animate-spin" />
+                          : <Power className="w-4 h-4" />}
+                      </button>
                     </div>
                   </div>
                 ))}

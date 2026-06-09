@@ -83,7 +83,7 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
       { file, scope: uploadScope },
       {
         onSuccess: () => toast.success(`${file.name} uploaded`),
-        onError: (err: any) => toast.error(err?.response?.data?.detail || 'Upload failed'),
+        onError: (err: any) => toast.error(err?.response?.data?.detail || err?.message || 'Upload failed'),
       },
     );
   };
@@ -103,7 +103,7 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
       { url: trimmed, scope: uploadScope },
       {
         onSuccess: () => { setUrlInput(''); toast.success('URL added'); },
-        onError: () => toast.error('Failed to add URL'),
+        onError: (err: any) => toast.error(err?.response?.data?.detail || err?.message || 'Failed to add URL'),
       },
     );
   };

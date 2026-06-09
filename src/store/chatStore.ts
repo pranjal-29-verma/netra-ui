@@ -115,13 +115,21 @@ export const useChatStore = create<ChatState>((set, get) => ({
       return conversation;
     }
 
-    const conversation = await chatService.createConversation();
-    set((state) => ({
-      conversations: [conversation, ...state.conversations],
-      currentConversation: conversation,
-      messages: [],
-    }));
-    return conversation;
+    try {
+      const conversation = await chatService.createConversation();
+      set((state) => ({
+        conversations: [conversation, ...state.conversations],
+        currentConversation: conversation,
+        messages: [],
+      }));
+      return conversation;
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail ?? '';
+      if (err?.response?.status === 403 && detail.includes('Conversation limit')) {
+        throw new Error(detail + ' → /pricing');
+      }
+      throw err;
+    }
   },
 
   deleteConversation: async (id: number) => {

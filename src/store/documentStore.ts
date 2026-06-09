@@ -16,6 +16,12 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     try {
       const doc = await documentService.uploadFile(file, scope, conversationId);
       set((state) => ({ documents: [doc, ...state.documents] }));
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail ?? '';
+      if (err?.response?.status === 403 && detail.includes('Document limit')) {
+        throw new Error(detail);
+      }
+      throw err;
     } finally {
       set({ isUploading: false });
     }
@@ -26,6 +32,12 @@ export const useDocumentStore = create<DocumentState>((set) => ({
     try {
       const doc = await documentService.addUrl(url, filename, scope, conversationId);
       set((state) => ({ documents: [doc, ...state.documents] }));
+    } catch (err: any) {
+      const detail = err?.response?.data?.detail ?? '';
+      if (err?.response?.status === 403 && detail.includes('Document limit')) {
+        throw new Error(detail);
+      }
+      throw err;
     } finally {
       set({ isUploading: false });
     }

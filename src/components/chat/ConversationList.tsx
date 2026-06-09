@@ -56,9 +56,25 @@ export const ConversationList: React.FC = () => {
 
   const handleNewChat = async () => {
     setIsCreating(true);
-    try { await createConversation(); }
-    catch { toast.error('Failed to create conversation'); }
-    finally { setIsCreating(false); }
+    try {
+      await createConversation();
+    } catch (err: any) {
+      const msg: string = err?.message ?? '';
+      if (msg.includes('Conversation limit')) {
+        toast.error(
+          <span>
+            {msg.replace(' → /pricing', '')}
+            {' '}
+            <a href="/pricing" className="underline font-medium">Upgrade plan</a>
+          </span>,
+          { duration: 5000 }
+        );
+      } else {
+        toast.error('Failed to create conversation');
+      }
+    } finally {
+      setIsCreating(false);
+    }
   };
 
   const handleSelectConversation = async (conversation: Conversation) => {

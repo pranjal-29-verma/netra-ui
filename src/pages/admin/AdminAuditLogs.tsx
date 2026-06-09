@@ -5,35 +5,67 @@ import { useAuditLogs, type AuditLogParams } from '../../hooks/useAdminQueries';
 // ── Action badge colours ──────────────────────────────────────────────────────
 
 const ACTION_COLOURS: Record<string, string> = {
-  'user.ban':               'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  'user.unban':             'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
-  'user.delete':            'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  'user.quota_change':      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
-  'role.assign':            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  'role.create':            'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
-  'llm.toggle':             'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  'llm.config.create':      'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  'llm.config.activate':    'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
-  'llm.config.deactivate':  'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
-  'llm.config.delete':      'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
-  'conversation.delete':    'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
-  'document.delete':        'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  // User
+  'user.ban':                 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  'user.unban':               'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+  'user.delete':              'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  'user.quota_change':        'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  // Roles
+  'role.assign':              'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  'role.create':              'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
+  // LLM
+  'llm.toggle':               'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  'llm.config.create':        'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  'llm.config.activate':      'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400',
+  'llm.config.deactivate':    'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+  'llm.config.delete':        'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400',
+  // Content
+  'conversation.delete':      'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  'document.delete':          'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400',
+  // Billing — Plans
+  'billing.plan_create':      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'billing.plan_update':      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  'billing.plan_activate':    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'billing.plan_deactivate':  'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+  // Billing — Token Packs
+  'billing.pack_create':      'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'billing.pack_update':      'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400',
+  'billing.pack_activate':    'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400',
+  'billing.pack_deactivate':  'bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400',
+  // Announcements
+  'announcement.send':        'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400',
 };
 
 const ACTION_LABELS: Record<string, string> = {
-  'user.ban':               'User Deactivated',
-  'user.unban':             'User Activated',
-  'user.delete':            'User Deleted',
-  'user.quota_change':      'Quota Changed',
-  'role.assign':            'Roles Assigned',
-  'role.create':            'Role Created',
-  'llm.toggle':             'LLM Source Toggled',
-  'llm.config.create':      'Model Config Added',
-  'llm.config.activate':    'Model Activated',
-  'llm.config.deactivate':  'Model Deactivated',
-  'llm.config.delete':      'Model Config Deleted',
-  'conversation.delete':    'Conversation Deleted',
-  'document.delete':        'Document Deleted',
+  // User
+  'user.ban':                 'User Deactivated',
+  'user.unban':               'User Activated',
+  'user.delete':              'User Deleted',
+  'user.quota_change':        'Quota Changed',
+  // Roles
+  'role.assign':              'Roles Assigned',
+  'role.create':              'Role Created',
+  // LLM
+  'llm.toggle':               'LLM Source Toggled',
+  'llm.config.create':        'Model Config Added',
+  'llm.config.activate':      'Model Activated',
+  'llm.config.deactivate':    'Model Deactivated',
+  'llm.config.delete':        'Model Config Deleted',
+  // Content
+  'conversation.delete':      'Conversation Deleted',
+  'document.delete':          'Document Deleted',
+  // Billing — Plans
+  'billing.plan_create':      'Plan Created',
+  'billing.plan_update':      'Plan Updated',
+  'billing.plan_activate':    'Plan Activated',
+  'billing.plan_deactivate':  'Plan Deactivated',
+  // Billing — Token Packs
+  'billing.pack_create':      'Pack Created',
+  'billing.pack_update':      'Pack Updated',
+  'billing.pack_activate':    'Pack Activated',
+  'billing.pack_deactivate':  'Pack Deactivated',
+  // Announcements
+  'announcement.send':        'Announcement Sent',
 };
 
 const ALL_ACTIONS = Object.keys(ACTION_LABELS);
@@ -125,6 +157,9 @@ export const AdminAuditLogs: React.FC = () => {
             <option value="llm_config">LLM Config</option>
             <option value="conversation">Conversation</option>
             <option value="document">Document</option>
+            <option value="plan">Billing — Plan</option>
+            <option value="token_pack">Billing — Token Pack</option>
+            <option value="system">System</option>
           </select>
 
           {/* Actor search */}

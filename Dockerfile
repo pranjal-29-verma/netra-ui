@@ -7,6 +7,8 @@ RUN npm ci
 COPY . .
 # Empty string → axios uses relative URLs → nginx proxies /api to netra-app internally
 ENV VITE_API_URL=''
+ARG VITE_GOOGLE_CLIENT_ID
+ENV VITE_GOOGLE_CLIENT_ID=$VITE_GOOGLE_CLIENT_ID
 RUN npm run build
 
 # Stage 2: Serve with nginx

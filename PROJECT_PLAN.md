@@ -182,35 +182,55 @@ user_roles         → user_id, role_id
 
 ---
 
-## Phase 6: Admin Panel Completion ⬅️ Current
-
-Complete the admin panel story with accountability, per-user control, and communication tools.
+## Phase 6: Admin Panel Completion ✅ Complete
 
 | # | Item | Priority | Status |
 |---|------|----------|--------|
 | P6.1 | LLM model config — encrypted storage, in-memory cache, admin Models page | High | ✅ Done |
-| P6.2 | Audit logs — track admin actions (ban, delete, model change, role assign) | High | 🔲 Todo |
-| P6.3 | Token quota per user — admin overrides individual user daily quota | High | 🔲 Todo |
-| P6.4 | System announcements — admin broadcasts banner message to all users | Low | 🔲 Todo |
+| P6.2 | Audit logs — track admin actions (ban, delete, model change, role assign) | High | ✅ Done |
+| P6.3 | Token quota per user — admin overrides individual user daily quota | High | ✅ Done |
+| P6.4 | System announcements — admin broadcasts banner message to all users | Low | 🔲 Deferred (post-launch) |
 
 ---
 
-## Phase 7: Production Readiness
-
-Harden the platform before monetization and wider rollout.
+## Phase 7: Production Readiness ✅ Complete (core)
 
 | # | Item | Priority | Status |
 |---|------|----------|--------|
-| P7.1 | Notifications — admin alerts (model key expired, quota breach) + user-facing | Medium | 🔲 Todo |
-| P7.2 | Email verification — confirm email before allowing login | Medium | 🔲 Todo |
-| P7.3 | Payment gateway (E4) — Stripe integration, plan tiers, model gating | Medium | 🔲 Todo |
-| P7.4 | Rate limiting — per-user request throttling at API level | Medium | 🔲 Todo |
+| P7.1 | Email verification — confirm email before allowing login | High | ✅ Done |
+| P7.2 | Rate limiting — per-user request throttling at API level | High | ✅ Done |
+| P7.3 | Payment gateway — Razorpay integration, plan tiers, token packs | High | ✅ Done |
+| P7.4 | Password reset flow | Medium | 🔲 Deferred (post-launch) |
+| P7.5 | In-app notifications | Low | 🔲 Deferred (post-launch) |
 
 ---
 
-## Phase 8: User Experience Polish
+## DevOps ✅ Complete
 
-Quality-of-life improvements based on real usage.
+| Item | Status |
+|------|--------|
+| Docker deployment — Dockerfile + nginx reverse proxy for all three services | ✅ Done |
+| Admin limit bypass — admins skip free-tier conversation/document limits | ✅ Done |
+
+---
+
+## 🚀 Pre-Launch: Bug Fixes & Testing ⬅️ Current Focus
+
+**Goal:** Stabilise existing features before adding anything new.
+
+| # | Item | Priority | Status |
+|---|------|----------|--------|
+| BT1 | End-to-end flow: register → verify email → chat → upload doc → RAG response | High | 🔲 Todo |
+| BT2 | Admin panel smoke test: users, roles, LLM config, audit logs, analytics | High | 🔲 Todo |
+| BT3 | Payment flow: plan purchase → quota update → token pack purchase | High | 🔲 Todo |
+| BT4 | Docker end-to-end: compose up → all services healthy → full chat flow | High | 🔲 Todo |
+| BT5 | Rate limit validation: hit limits, confirm 429 responses and UI handling | Medium | 🔲 Todo |
+| BT6 | Error handling: invalid API key, quota exhausted, bad/large document | Medium | 🔲 Todo |
+| BT7 | Edge cases: incognito mode, banned user, deleted conversation | Medium | 🔲 Todo |
+
+---
+
+## Phase 8: User Experience Polish (Post-Launch)
 
 | # | Item | Priority | Status |
 |---|------|----------|--------|
@@ -261,4 +281,4 @@ LLM_ENCRYPTION_KEY=...
 
 ---
 
-**Last Updated:** Phase 6 in progress — P6.1 (LLM model config) complete. Next: P6.2 Audit Logs.
+**Last Updated:** Pre-launch bug fixing & testing phase. Core features (auth, chat, RAG, admin, payments, Docker) complete. Focus: stabilise before adding new features.

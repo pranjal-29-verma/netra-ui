@@ -23,7 +23,7 @@ export const Pricing: React.FC = () => {
       .finally(() => setLoading(false));
   }, []);
 
-  const handlePay = async (itemType: 'plan' | 'pack', itemId: number, label: string) => {
+  const handlePay = async (itemType: 'plan' | 'pack', itemId: number, _label: string) => {
     if (!isAuthenticated) {
       navigate('/login');
       return;

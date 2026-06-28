@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { Mail, RefreshCw } from 'lucide-react';
 import { Input } from '../common/Input';
@@ -9,7 +9,6 @@ import authService from '../../services/authService';
 import type { RegisterCredentials } from '../../types';
 
 export const RegisterForm: React.FC = () => {
-  const navigate = useNavigate();
   const register = useAuthStore((state) => state.register);
 
   const [registeredEmail, setRegisteredEmail] = useState<string | null>(null);

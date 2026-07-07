@@ -2,7 +2,6 @@ import React, { useEffect, useRef } from 'react';
 import { Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTokenUsage } from '../../hooks/useTokenUsage';
-import { Link } from 'react-router-dom';
 
 export const TokenUsageBar: React.FC = () => {
   const { data: usage } = useTokenUsage();
@@ -16,10 +15,10 @@ export const TokenUsageBar: React.FC = () => {
       toast(
         (t) => (
           <span>
-            Daily token quota reached.{' '}
-            <Link to="/pricing" onClick={() => toast.dismiss(t.id)} className="underline font-semibold">
+            Daily quota reached.{' '}
+            <a href="/pricing" onClick={() => toast.dismiss(t.id)} className="underline font-semibold">
               Upgrade your plan
-            </Link>{' '}
+            </a>{' '}
             to keep chatting.
           </span>
         ),

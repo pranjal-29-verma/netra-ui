@@ -116,32 +116,32 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-white border-l border-gray-200 w-80">
+    <div className="flex flex-col h-full bg-white dark:bg-gray-900 border-l border-gray-200 dark:border-gray-700 w-80">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-        <h2 className="font-semibold text-gray-900">Documents</h2>
-        <button onClick={onClose} className="p-1 hover:bg-gray-100 rounded-lg transition-colors">
-          <X className="w-5 h-5 text-gray-500" />
+      <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200 dark:border-gray-700">
+        <h2 className="font-semibold text-gray-900 dark:text-gray-100">Documents</h2>
+        <button onClick={onClose} className="p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors">
+          <X className="w-5 h-5 text-gray-500 dark:text-gray-400" />
         </button>
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-4">
         {/* Scope selector */}
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Upload Scope</p>
-          <div className="flex rounded-lg border border-gray-200 overflow-hidden text-sm">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Upload Scope</p>
+          <div className="flex rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden text-sm">
             <button
               onClick={() => setUploadScope('global')}
               className={`flex-1 flex items-center justify-center gap-1.5 py-2 transition-colors ${
-                uploadScope === 'global' ? 'bg-primary-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+                uploadScope === 'global' ? 'bg-primary-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <Globe className="w-3.5 h-3.5" /> Knowledge Base
             </button>
             <button
               onClick={() => setUploadScope('conversation')}
-              className={`flex-1 flex items-center justify-center gap-1.5 py-2 transition-colors border-l border-gray-200 ${
-                uploadScope === 'conversation' ? 'bg-violet-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-50'
+              className={`flex-1 flex items-center justify-center gap-1.5 py-2 transition-colors border-l border-gray-200 dark:border-gray-700 ${
+                uploadScope === 'conversation' ? 'bg-violet-600 text-white' : 'bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700'
               }`}
             >
               <MessageSquare className="w-3.5 h-3.5" /> This Chat
@@ -169,24 +169,24 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
           onClick={() => !thisChatscopeBlocked && fileInputRef.current?.click()}
           className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
             thisChatscopeBlocked
-              ? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+              ? 'border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 cursor-not-allowed opacity-60'
               : isDragging
-              ? 'border-primary-400 bg-primary-50 cursor-pointer'
-              : 'border-gray-300 hover:border-primary-300 hover:bg-gray-50 cursor-pointer'
+              ? 'border-primary-400 bg-primary-50 dark:bg-primary-900/20 cursor-pointer'
+              : 'border-gray-300 dark:border-gray-600 hover:border-primary-300 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer'
           }`}
         >
           <input ref={fileInputRef} type="file" accept={ACCEPTED} className="hidden" onChange={(e) => handleFiles(e.target.files)} />
           {isUploading
             ? <Loader className="w-8 h-8 text-primary-500 animate-spin mx-auto mb-2" />
-            : <Upload className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+            : <Upload className="w-8 h-8 text-gray-400 dark:text-gray-500 mx-auto mb-2" />
           }
-          <p className="text-sm font-medium text-gray-700">{isUploading ? 'Uploading…' : 'Drop file or click to browse'}</p>
-          <p className="text-xs text-gray-400 mt-1">PDF, TXT, DOCX, MD · Max {MAX_MB} MB</p>
+          <p className="text-sm font-medium text-gray-700 dark:text-gray-300">{isUploading ? 'Uploading…' : 'Drop file or click to browse'}</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">PDF, TXT, DOCX, MD · Max {MAX_MB} MB</p>
         </div>
 
         {/* URL input */}
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">Add URL</p>
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">Add URL</p>
           <div className="flex gap-2">
             <input
               type="url"
@@ -195,7 +195,7 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
               onKeyDown={(e) => e.key === 'Enter' && handleAddUrl()}
               placeholder="https://example.com/doc"
               disabled={thisChatscopeBlocked}
-              className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none disabled:opacity-60 disabled:cursor-not-allowed"
+              className="flex-1 px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-primary-500 focus:border-transparent outline-none bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 disabled:opacity-60 disabled:cursor-not-allowed"
             />
             <button
               onClick={handleAddUrl}
@@ -209,21 +209,21 @@ export const DocumentPanel: React.FC<DocumentPanelProps> = ({ onClose }) => {
 
         {/* Document list */}
         <div>
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-1.5">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wide mb-1.5">
             {conversationId ? 'Documents for this chat' : 'Knowledge Base'} ({documents.length})
           </p>
           {documents.length === 0 ? (
-            <p className="text-sm text-gray-400 text-center py-6">No documents yet</p>
+            <p className="text-sm text-gray-400 dark:text-gray-500 text-center py-6">No documents yet</p>
           ) : (
             <div className="space-y-2">
               {documents.map((doc) => (
-                <div key={doc.id} className="group flex items-start gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                <div key={doc.id} className="group flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
                   {doc.file_type === 'url'
                     ? <Globe className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
                     : <FileText className="w-4 h-4 text-primary-400 flex-shrink-0 mt-0.5" />
                   }
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium text-gray-800 truncate">{doc.filename}</p>
+                    <p className="text-sm font-medium text-gray-800 dark:text-gray-200 truncate">{doc.filename}</p>
                     <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                       <StatusBadge status={doc.status} />
                       <ScopeBadge scope={doc.scope} />

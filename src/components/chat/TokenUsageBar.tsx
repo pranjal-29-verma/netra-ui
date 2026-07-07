@@ -2,14 +2,30 @@ import React, { useEffect, useRef } from 'react';
 import { Zap } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { useTokenUsage } from '../../hooks/useTokenUsage';
+import { Link } from 'react-router-dom';
 
 export const TokenUsageBar: React.FC = () => {
   const { data: usage } = useTokenUsage();
   const warned = useRef(false);
+  const exhaustedWarned = useRef(false);
 
   useEffect(() => {
     if (!usage) return;
-    if (usage.usage_percentage >= 80 && !warned.current) {
+    if (usage.usage_percentage >= 100 && !exhaustedWarned.current) {
+      exhaustedWarned.current = true;
+      toast(
+        (t) => (
+          <span>
+            Daily token quota reached.{' '}
+            <Link to="/pricing" onClick={() => toast.dismiss(t.id)} className="underline font-semibold">
+              Upgrade your plan
+            </Link>{' '}
+            to keep chatting.
+          </span>
+        ),
+        { icon: '🚫', duration: 6000 },
+      );
+    } else if (usage.usage_percentage >= 80 && !warned.current) {
       warned.current = true;
       toast('You have used 80% of your daily token quota.', { icon: '⚠️' });
     }

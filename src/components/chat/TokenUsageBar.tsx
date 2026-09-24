@@ -6,10 +6,25 @@ import { useTokenUsage } from '../../hooks/useTokenUsage';
 export const TokenUsageBar: React.FC = () => {
   const { data: usage } = useTokenUsage();
   const warned = useRef(false);
+  const exhaustedWarned = useRef(false);
 
   useEffect(() => {
     if (!usage) return;
-    if (usage.usage_percentage >= 80 && !warned.current) {
+    if (usage.usage_percentage >= 100 && !exhaustedWarned.current) {
+      exhaustedWarned.current = true;
+      toast(
+        (t) => (
+          <span>
+            Daily quota reached.{' '}
+            <a href="/pricing" onClick={() => toast.dismiss(t.id)} className="underline font-semibold">
+              Upgrade your plan
+            </a>{' '}
+            to keep chatting.
+          </span>
+        ),
+        { icon: '🚫', duration: 6000 },
+      );
+    } else if (usage.usage_percentage >= 80 && !warned.current) {
       warned.current = true;
       toast('You have used 80% of your daily token quota.', { icon: '⚠️' });
     }
